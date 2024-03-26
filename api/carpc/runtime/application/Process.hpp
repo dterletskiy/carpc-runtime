@@ -5,7 +5,7 @@
 #include "carpc/runtime/comm/service/Registry.hpp"
 #include "carpc/runtime/application/Thread.hpp"
 #include "carpc/runtime/application/Types.hpp"
-#include "carpc/tools/Tools.hpp"
+#include "carpc/tools/parameters/Params.hpp"
 
 
 
@@ -76,9 +76,9 @@ namespace carpc::application {
          configuration::Data m_configuration;
 
       public:
-         const tools::PCE& pce( ) const;
+         const tools::parameters::Params& parameters( ) const;
       private:
-         tools::PCE m_pce;
+         tools::parameters::Params m_params;
    };
 
 
@@ -114,9 +114,9 @@ namespace carpc::application {
    }
 
    inline
-   const tools::PCE& Process::pce( ) const
+   const tools::parameters::Params& Process::parameters( ) const
    {
-      return m_pce;
+      return m_params;
    }
 
 } // namespace carpc::application

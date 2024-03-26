@@ -60,64 +60,65 @@ Process::tSptr Process::mp_instance = nullptr;
 
 Process::Process( int argc, char** argv, char** envp )
    : m_id( getpid( ) ) // @TDA: should be unique for all computers in the network
-   , m_pce( argc, argv, envp )
+   , m_params( argc, argv, envp )
 {
    SYS_DBG( "[runtime] creating..." );
 
-   m_pce.print( );
+   m_params.print( );
 
-   if( "true" == m_pce.value( "ipc" ).value_or( "true" ) )  m_configuration.ipc = true;
-   else                                                     m_configuration.ipc = false;
+   m_configuration.ipc = false;
 
    if(
-            false == m_configuration.ipc
-         || std::nullopt == m_pce.value( "ipc_servicebrocker_domain" )
-         || std::nullopt == m_pce.value( "ipc_servicebrocker_type" )
-         || std::nullopt == m_pce.value( "ipc_servicebrocker_protocole" )
-         || std::nullopt == m_pce.value( "ipc_servicebrocker_address" )
-         || std::nullopt == m_pce.value( "ipc_servicebrocker_port" )
+            m_params.exists( "ipc" )
+         && m_params.exists( "ipc_servicebrocker_domain" )
+         && m_params.exists( "ipc_servicebrocker_type" )
+         && m_params.exists( "ipc_servicebrocker_protocole" )
+         && m_params.exists( "ipc_servicebrocker_address" )
+         && m_params.exists( "ipc_servicebrocker_port" )
 
-         || std::nullopt == m_pce.value( "ipc_application_domain" )
-         || std::nullopt == m_pce.value( "ipc_application_type" )
-         || std::nullopt == m_pce.value( "ipc_application_protocole" )
-         || std::nullopt == m_pce.value( "ipc_application_address" )
-         || std::nullopt == m_pce.value( "ipc_application_port" )
-      ) m_configuration.ipc = false;
-
-   if( true == m_configuration.ipc )
+         && m_params.exists( "ipc_application_domain" )
+         && m_params.exists( "ipc_application_type" )
+         && m_params.exists( "ipc_application_protocole" )
+         && m_params.exists( "ipc_application_address" )
+         && m_params.exists( "ipc_application_port" )
+      )
    {
+      m_configuration.ipc = true;
+
       m_configuration.ipc_sb.socket = os::os_linux::socket::configuration {
          carpc::os::os_linux::socket::socket_domain_from_string(
-               m_pce.value( "ipc_servicebrocker_domain" ).value( ).c_str( )
+               m_params.value( "ipc_servicebrocker_domain" )
             ),
          carpc::os::os_linux::socket::socket_type_from_string(
-               m_pce.value( "ipc_servicebrocker_type" ).value( ).c_str( )
+               m_params.value( "ipc_servicebrocker_type" )
             ),
-         static_cast< int >( std::stoll( m_pce.value( "ipc_servicebrocker_protocole" ).value( ) ) ),
-         m_pce.value( "ipc_servicebrocker_address" ).value( ),
-         static_cast< int >( std::stoll( m_pce.value( "ipc_servicebrocker_port" ).value( ) ) )
+         static_cast< int >( std::stoll( m_params.value( "ipc_servicebrocker_protocole" ) ) ),
+         m_params.value( "ipc_servicebrocker_address" ),
+         static_cast< int >( std::stoll( m_params.value( "ipc_servicebrocker_port" ) ) )
       };
       m_configuration.ipc_sb.buffer_size = static_cast< std::size_t >( std::stoll(
-            m_pce.value( "ipc_servicebrocker_buffer_size" ).value_or( "4096" ) )
+            m_params.value_or( "ipc_servicebrocker_buffer_size", "4096" ) )
          );
 
       m_configuration.ipc_app.socket = os::os_linux::socket::configuration {
          carpc::os::os_linux::socket::socket_domain_from_string(
-               m_pce.value( "ipc_application_domain" ).value( ).c_str( )
+               m_params.value( "ipc_application_domain" )
             ),
          carpc::os::os_linux::socket::socket_type_from_string(
-               m_pce.value( "ipc_application_type" ).value( ).c_str( )
+               m_params.value( "ipc_application_type" )
             ),
-         static_cast< int >( std::stoll( m_pce.value( "ipc_application_protocole" ).value( ) ) ),
-         m_pce.value( "ipc_application_address" ).value( ),
-         static_cast< int >( std::stoll( m_pce.value( "ipc_application_port" ).value( ) ) )
+         static_cast< int >( std::stoll( m_params.value( "ipc_application_protocole" ) ) ),
+         m_params.value( "ipc_application_address" ),
+         static_cast< int >( std::stoll( m_params.value( "ipc_application_port" ) ) )
       };
       m_configuration.ipc_app.buffer_size = static_cast< std::size_t >(
-            std::stoll( m_pce.value( "ipc_application_buffer_size" ).value_or( "4096" ) )
+            std::stoll( m_params.value_or( "ipc_application_buffer_size", "4096" ) )
          );
    }
 
-   m_configuration.wd_timout = static_cast< std::size_t >( std::stoll( m_pce.value_or( "application_wd_timout", "10" ) ) );
+   m_configuration.wd_timout = static_cast< std::size_t >(
+         std::stoll( m_params.value_or( "application_wd_timout", "10" ) )
+      );
 
    DUMP_IPC_EVENTS;
 

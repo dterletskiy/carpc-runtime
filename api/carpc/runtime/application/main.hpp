@@ -1,3 +1,4 @@
+#include "carpc/tools/parameters/Params.hpp"
 #include "carpc/runtime/application/Process.hpp"
 
 #include "carpc/trace/Trace.hpp"
@@ -48,20 +49,17 @@ using tExit = void (*)( void );
 
 void preinit( int argc, char** argv, char** envp )
 {
-   carpc::tools::PCE configuration( argc, argv, envp );
-   // configuration.print( );
+   auto params = carpc::tools::parameters::Params( argc, argv, envp );
 
    const carpc::trace::eLogStrategy trace_strategy = carpc::trace::log_strategy_from_string(
-         configuration.value_or( "trace_log", "CONSOLE" ).c_str( )
+         params.value_or( "trace_log", "CONSOLE" )
       );
-   const std::size_t trace_buffer = static_cast< std::size_t >( std::stoll(
-         configuration.value_or( "trace_buffer", "4096" )
-      ) );
-   const std::string trace_app_name = configuration.value_or( "trace_app_name", "APP" );
+   const std::size_t trace_buffer = static_cast< std::size_t >(
+         std::stoll( params.value_or( "trace_buffer", "4096" ) )
+      );
+   const std::string trace_app_name = params.value_or( "trace_app_name", "APP" );
    const carpc::trace::eLogLevel trace_level = carpc::trace::log_level_from_number(
-         std::stoll(
-            configuration.value_or( "trace_level", "6" )
-         )
+         std::stoll( params.value_or( "trace_level", "6" ) )
       );
    carpc::trace::Logger::init( trace_strategy, trace_app_name, trace_buffer, trace_level );
 
