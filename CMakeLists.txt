@@ -79,5 +79,5 @@ add_custom_target( "${PROJECT_TARGET_NAME}_documentation" ALL
 
 add_dependencies( ${PROJECT_TARGET_NAME} "${PROJECT_TARGET_NAME}_documentation" )
 
-install( TARGETS ${PROJECT_TARGET_NAME} DESTINATION lib )
-install( DIRECTORY ${PROJECT_SOURCE_DIR}/api/ DESTINATION include )
+install( TARGETS ${PROJECT_TARGET_NAME} DESTINATION lib/carpc )
+install( DIRECTORY ${PROJECT_SOURCE_DIR}/api/carpc/ DESTINATION include/carpc )
