@@ -35,13 +35,27 @@ namespace carpc::async {
 
       // static functions
       public:
-         static const bool set_notification( tConsumer* p_consumer, const tUserSignature& signature = { } )
+         static const bool set_notification( tConsumer* p_consumer, const tUserSignature& signature )
          {
             return IEvent::set_notification( p_consumer, tSignature::create( signature ) );
          }
-         static const bool clear_notification( tConsumer* p_consumer, const tUserSignature& signature = { } )
+         template< typename ... TYPES >
+         static const bool set_notification( tConsumer* p_consumer, const TYPES& ... signature_parameters )
+         {
+            return IEvent::set_notification(
+                  p_consumer, tSignature::create( tUserSignature{ signature_parameters... } )
+               );
+         }
+         static const bool clear_notification( tConsumer* p_consumer, const tUserSignature& signature )
          {
             return IEvent::clear_notification( p_consumer, tSignature::create( signature ) );
+         }
+         template< typename ... TYPES >
+         static const bool clear_notification( tConsumer* p_consumer, const TYPES& ... signature_parameters )
+         {
+            return IEvent::clear_notification(
+                  p_consumer, tSignature::create( tUserSignature{ signature_parameters... } )
+               );
          }
          static const bool clear_all_notifications( tConsumer* p_consumer )
          {
