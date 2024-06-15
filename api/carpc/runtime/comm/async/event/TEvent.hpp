@@ -55,13 +55,17 @@ namespace carpc::async {
          {
             return std::shared_ptr< tEvent >( new tEvent( tUserSignature( ) ) );
          }
-         static std::shared_ptr< tEvent > create( )
-         {
-            return std::shared_ptr< tEvent >( new tEvent( tUserSignature( ) ) );
-         }
+         // Create event with user defined signature passed as argument
          static std::shared_ptr< tEvent > create( const tUserSignature& signature )
          {
             return std::shared_ptr< tEvent >( new tEvent( signature ) );
+         }
+         // Create event with user defined signature built using variadic arguments
+         // In case if arguments list is empty, default user signature constructor will be used
+         template< typename ... TYPES >
+         static std::shared_ptr< tEvent > create( const TYPES& ... signature_parameters )
+         {
+            return std::shared_ptr< tEvent >( new tEvent( tUserSignature{ signature_parameters... } ) );
          }
 
       // virual function
