@@ -26,7 +26,8 @@ IProxy::IProxy( const carpc::async::tAsyncTypeID& interface_type_id, const std::
    if( Registry::eResult::OK_NotPaired == result )
    {
       if( true == is_external( ) )
-         ev_i::Action::Event::create_send( { ev_i::eAction::RegisterClient }, { signature( ), Address( context( ), id( ) ) } );
+         ev_i::Action::Event::create( { ev_i::eAction::RegisterClient } )->
+            data( { signature( ), Address( context( ), id( ) ) } )->send( );
    }
 }
 
@@ -39,7 +40,8 @@ IProxy::~IProxy( )
    // in case of there client could exports interface
    if( Registry::eResult::OK_NotPaired == result )
    {
-      ev_i::Action::Event::create_send( { ev_i::eAction::UnregisterClient }, { signature( ), Address( context( ), id( ) ) } );
+      ev_i::Action::Event::create( { ev_i::eAction::UnregisterClient } )->
+         data( { signature( ), Address( context( ), id( ) ) } )->send( );
    }
 }
 

@@ -212,7 +212,8 @@ void Timer::process( const carpc::os::os_linux::timer::tID id )
    else if( m_ticks > m_count )
       return;
 
-   TimerEvent::Event::create_send( { m_id.value( ) }, { m_id }, carpc::priority( ePriority::TIMER ), m_context );
+   TimerEvent::Event::create( { m_id.value( ) } )->
+      data( { m_id } )->priority( carpc::priority( ePriority::TIMER ) )->send( m_context );
 }
 
 

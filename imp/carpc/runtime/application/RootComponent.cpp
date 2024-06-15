@@ -23,8 +23,6 @@ RootComponent::~RootComponent( )
 
 void RootComponent::shutdown( const std::string& message )
 {
-   events::system::System::Event::create_send(
-      { events::system::eID::shutdown },
-      { "shutdown application" }
-   );
+   events::system::System::Event::create( { events::system::eID::shutdown } )->
+      data( { "shutdown application" } )->send( );
 }

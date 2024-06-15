@@ -119,7 +119,7 @@ namespace carpc::service::experimental::__private_server__ {
       {
          SYS_WRN( "request busy: %s", event_id.c_str( ) );
          // Sending event with request busy id
-         TYPES::method::tEvent::create_send(
+         TYPES::method::tEvent::create(
             typename TYPES::method::tEventUserSignature(
                mp_server->signature( ).role( ),
                event_id,
@@ -127,9 +127,8 @@ namespace carpc::service::experimental::__private_server__ {
                mp_server->id( ),
                from_id,
                seq_id
-            ),
-            from_context
-         );
+            )
+         )->send( from_context );
          return false;
       }
 
@@ -219,7 +218,8 @@ namespace carpc::service::experimental::__private_server__ {
          request_info.client_seq_id
       );
       typename TYPES::method::tEventData event_data( std::make_shared< tResponseData >( args... ) );
-      TYPES::method::tEvent::create_send( event_signature, event_data, request_info.client_addr.context( ) );
+      TYPES::method::tEvent::create( event_signature )->
+         data( event_data )->send( request_info.client_addr.context( ) );
 
       request_info_set.erase( iterator_request_info_set );
       request_status.status = eRequestStatus::READY;
@@ -321,7 +321,8 @@ namespace carpc::service::experimental::__private_server__ {
             subscriber.id( )
          );
          typename TYPES::attribute::tEventData event_data( mp_data );
-         TYPES::attribute::tEvent::create_send( event_signature, event_data, subscriber.context( ) );
+         TYPES::attribute::tEvent::create( event_signature )->
+            data( event_data )->send( subscriber.context( ) );
       }
    }
 
@@ -399,7 +400,8 @@ namespace carpc::service::experimental::__private_server__ {
                from_id
             );
             typename TYPES::attribute::tEventData event_data( notification_status.data( ) );
-            TYPES::attribute::tEvent::create_send( event_signature, event_data, from_context );
+            TYPES::attribute::tEvent::create( event_signature )->
+               data( event_data )->send( from_context );
          }
       }
       else if( carpc::service::eType::UNSUBSCRIBE == event_type )

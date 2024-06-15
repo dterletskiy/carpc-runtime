@@ -91,10 +91,12 @@ Registry::eResult Registry::register_server( const Signature& signature, const A
 
    // Send notification events to server about each registered client with current signature
    for( const auto& address_client : connection.clients )
-      ev_i::Status::Event::create_send( { signature, ev_i::eStatus::ClientConnected }, address_client );
+      ev_i::Status::Event::create( { signature, ev_i::eStatus::ClientConnected } )->
+         data( address_client )->send( );
 
    // Send notification event to clients about registered server with current signature
-   ev_i::Status::Event::create_send( { signature, ev_i::eStatus::ServerConnected }, ev_i::Status::Data( address ) );
+   ev_i::Status::Event::create( { signature, ev_i::eStatus::ServerConnected } )->
+      data( ev_i::Status::Data( address ) )->send( );
 
    return eResult::OK_Paired;
 }
@@ -131,7 +133,8 @@ Registry::eResult Registry::unregister_server( const Signature& signature, const
    SYS_INF( "unregistered paired server: %s", signature.dbg_name( ).c_str( ) );
 
    // Send notification event to clients about registered server with current signature
-   ev_i::Status::Event::create_send( { signature, ev_i::eStatus::ServerDisconnected }, address );
+   ev_i::Status::Event::create( { signature, ev_i::eStatus::ServerDisconnected } )->
+      data( address )->send( );
 
    return eResult::OK_Paired;
 }
@@ -171,9 +174,11 @@ Registry::eResult Registry::register_client( const Signature& signature, const A
    SYS_INF( "registered paired client: %s", signature.dbg_name( ).c_str( ) );
 
    // Send notification event to server about registered client with current signature
-   ev_i::Status::Event::create_send( { signature, ev_i::eStatus::ClientConnected }, address ); // @TDA-IMPROVE: here and in similar places should be send not broadcast event but addresed.
+   ev_i::Status::Event::create( { signature, ev_i::eStatus::ClientConnected } )->
+      data( address )->send( ); // @TDA-IMPROVE: here and in similar places should be send not broadcast event but addresed.
    // Send notification events to client about registered server with current signature
-   ev_i::Status::Event::create_send( { signature, ev_i::eStatus::ServerConnected }, connection.server );
+   ev_i::Status::Event::create( { signature, ev_i::eStatus::ServerConnected } )->
+      data( connection.server )->send( );
 
    return eResult::OK_Paired;
 }
@@ -209,7 +214,8 @@ Registry::eResult Registry::unregister_client( const Signature& signature, const
    SYS_INF( "unregistered paired client: %s", signature.dbg_name( ).c_str( ) );
 
    // Send notification event about unregistered client with current signature
-   ev_i::Status::Event::create_send( { signature, ev_i::eStatus::ClientDisconnected }, address );
+   ev_i::Status::Event::create( { signature, ev_i::eStatus::ClientDisconnected } )->
+      data( address )->send( );
 
    return eResult::OK_Paired;
 }

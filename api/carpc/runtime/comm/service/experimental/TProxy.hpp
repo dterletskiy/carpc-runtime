@@ -122,7 +122,8 @@ namespace carpc::service::experimental::__private_proxy__ {
             m_seq_id
          );
       typename TYPES::method::tEventData data( std::make_shared< tRequestData >( args... ) );
-      TYPES::method::tEvent::create_send( event_signature, data, mp_proxy->server( ).context( ) );
+      TYPES::method::tEvent::create( event_signature )->
+         data( data )->send( mp_proxy->server( ).context( ) );
 
       return m_seq_id;
    }
@@ -262,16 +263,15 @@ namespace carpc::service::experimental::__private_proxy__ {
                   mp_proxy->id( )
                )
             );
-         TYPES::attribute::tEvent::create_send(
+         TYPES::attribute::tEvent::create(
                typename TYPES::attribute::tEventUserSignature(
                   mp_proxy->signature( ).role( ),
                   tAttributeData::ID,
                   carpc::service::eType::SUBSCRIBE,
                   mp_proxy->id( ),
                   mp_proxy->server( ).id( )
-               ),
-               mp_proxy->server( ).context( )
-            );
+               )
+            )->send( mp_proxy->server( ).context( ) );
       }
       clients_set.emplace( p_client );
 
@@ -285,8 +285,7 @@ namespace carpc::service::experimental::__private_proxy__ {
                      tAttributeData::ID,
                      carpc::service::eType::NOTIFICATION
                   )
-            );
-         p_event->data( event_id_iterator->second.mp_event_data );
+            )->data( event_id_iterator->second.mp_event_data );
          auto operation = [ p_client, p_event ]( ){ p_client->process_event( *p_event ); };
          carpc::async::Runnable::create_send( operation );
       }
@@ -319,16 +318,15 @@ namespace carpc::service::experimental::__private_proxy__ {
                   mp_proxy->id( )
                )
          );
-         TYPES::attribute::tEvent::create_send(
+         TYPES::attribute::tEvent::create(
             typename TYPES::attribute::tEventUserSignature(
                mp_proxy->signature( ).role( ),
                tAttributeData::ID,
                carpc::service::eType::UNSUBSCRIBE,
                mp_proxy->id( ),
                mp_proxy->server( ).id( )
-            ),
-            mp_proxy->server( ).context( )
-         );
+            )
+         )->send( mp_proxy->server( ).context( ) );
          event_id_iterator->second.mp_event_data = nullptr;
       }
 

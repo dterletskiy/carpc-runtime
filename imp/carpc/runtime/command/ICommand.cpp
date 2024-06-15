@@ -83,7 +83,7 @@ bool ICommand::state( const command::eState& new_state )
    {
       SYS_DBG( "'%s': '%s' -> '%s'", m_id.dbg_name( ).c_str( ), command::c_str( m_state ), command::c_str( new_state )  );
       m_state = new_state;
-      Signal::Event::create_send( { m_parent_id }, { m_id, m_state } );
+      Signal::Event::create( { m_parent_id } )->data( { m_id, m_state } )->send( );
    }
    else
    {

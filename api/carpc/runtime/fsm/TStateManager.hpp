@@ -306,7 +306,7 @@ namespace carpc::fsm {
    {
       // Sending signal event to consumer (this manager) placed in context
       // where it has been created
-      tBase::Signal::Event::create_send( { m_id }, data, m_context );
+      tBase::Signal::Event::create( { m_id } )->data( data )->send( m_context );
    }
 
    template< typename TYPES >

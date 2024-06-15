@@ -295,7 +295,8 @@ void Process::boot( )
 {
    SYS_DBG( "[runtime] running..." );
 
-   events::system::System::Event::create_send( { events::system::eID::boot }, { "booting application" } );
+   events::system::System::Event::create( { events::system::eID::boot } )->
+      data( { "booting application" } )->send( );
 
    for( auto& p_thread : m_thread_list )
       if( p_thread )

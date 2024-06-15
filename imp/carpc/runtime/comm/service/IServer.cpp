@@ -22,7 +22,8 @@ IServer::IServer( const carpc::async::tAsyncTypeID& interface_type_id, const std
    );
    // Send IPC notification information about registered server to ServiceBrocker
    if( true == is_external( ) )
-      ev_i::Action::Event::create_send( { ev_i::eAction::RegisterServer }, { signature( ), Address( context( ), id( ) ) } );  
+      ev_i::Action::Event::create( { ev_i::eAction::RegisterServer } )->
+         data( { signature( ), Address( context( ), id( ) ) } )->send( );
 }
 
 IServer::~IServer( )
@@ -32,7 +33,8 @@ IServer::~IServer( )
    );
    // Send IPC notification information about registered server to ServiceBrocker
    if( true == is_external( ) )
-      ev_i::Action::Event::create_send( { ev_i::eAction::UnregisterServer }, { signature( ), Address( context( ), id( ) ) } );
+      ev_i::Action::Event::create( { ev_i::eAction::UnregisterServer } )->
+         data( { signature( ), Address( context( ), id( ) ) } )->send( );
 }
 
 void IServer::status( const Address& proxy_address, const eStatus connection_status )

@@ -159,7 +159,8 @@ namespace carpc::service::secure::__private__ {
             typename TYPES::tEventUserSignature event_signature(
                server.signature( ).role( ), tNotificationData::NOTIFICATION, server.id( ), subscriber.sid
             );
-            TYPES::tEvent::create_send( event_signature, event_data, application::Context( subscriber.tid, pair.first ) );
+            TYPES::tEvent::create( event_signature )->
+               data( event_data )->send( application::Context( subscriber.tid, pair.first ) );
          }
       }
    }
@@ -352,9 +353,11 @@ namespace carpc::service::secure::__private__ {
       {
          SYS_WRN( "request busy: %s", event_id.c_str( ) );
          // Sending event with request busy id
-         TYPES::tEvent::create_send(
-            typename TYPES::tEventUserSignature( signature( ).role( ), rrIDs.busy, id( ), from_id, seq_id ), from_context
-         );
+         TYPES::tEvent::create(
+            typename TYPES::tEventUserSignature(
+                  signature( ).role( ), rrIDs.busy, id( ), from_id, seq_id
+               )
+         )->send( from_context );
          return false;
       }
 
@@ -441,7 +444,8 @@ namespace carpc::service::secure::__private__ {
          signature( ).role( ), tResponseData::RESPONSE, id( ), request_info.client_addr.id( ), request_info.client_seq_id
       );
       typename TYPES::tEventData event_data( std::make_shared< tResponseData >( args... ) );
-      TYPES::tEvent::create_send( event_signature, event_data, request_info.client_addr.context( ) );
+      TYPES::tEvent::create( event_signature )->
+         data( event_data )->send( request_info.client_addr.context( ) );
    }
 
    template< typename TYPES >
@@ -473,7 +477,8 @@ namespace carpc::service::secure::__private__ {
             {
                typename TYPES::tEventUserSignature event_signature( signature( ).role( ), item.notification, id( ), from_id );
                typename TYPES::tEventData event_data( notification_status.data( ) );
-               TYPES::tEvent::create_send( event_signature, event_data, from_context );
+               TYPES::tEvent::create( event_signature )->
+                  data( event_data )->send( from_context );
             }
          }
          else if( item.unsubscribe == event_id )

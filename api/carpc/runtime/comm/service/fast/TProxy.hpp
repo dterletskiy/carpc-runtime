@@ -135,7 +135,8 @@ namespace carpc::service::fast::__private__ {
             m_seq_id
          );
       typename TYPES::tEventData data( std::make_shared< tRequestData >( args... ) );
-      TYPES::tEvent::create_send( event_signature, data, mp_proxy->server( ).context( ) );
+      TYPES::tEvent::create( event_signature )->
+         data( data )->send( mp_proxy->server( ).context( ) );
 
       return m_seq_id;
    }
@@ -287,15 +288,14 @@ namespace carpc::service::fast::__private__ {
                   mp_proxy->id( )
                )
             );
-         TYPES::tEvent::create_send(
+         TYPES::tEvent::create(
                typename TYPES::tEventUserSignature(
                   mp_proxy->signature( ).role( ),
                   tNotificationData::SUBSCRIBE,
                   mp_proxy->id( ),
                   mp_proxy->server( ).id( )
-               ),
-               mp_proxy->server( ).context( )
-            );
+               )
+            )->send( mp_proxy->server( ).context( ) );
       }
       clients_set.emplace( p_client );
 
@@ -308,8 +308,7 @@ namespace carpc::service::fast::__private__ {
                      mp_proxy->signature( ).role( ),
                      tNotificationData::NOTIFICATION
                   )
-            );
-         p_event->data( event_id_iterator->second.mp_event_data );
+            )->data( event_id_iterator->second.mp_event_data );
          auto operation = [ p_client, p_event ]( ){ p_client->process_notification_event( *p_event ); };
          carpc::async::Runnable::create_send( operation );
       }
@@ -341,15 +340,14 @@ namespace carpc::service::fast::__private__ {
                   mp_proxy->id( )
                )
          );
-         TYPES::tEvent::create_send(
+         TYPES::tEvent::create(
             typename TYPES::tEventUserSignature(
                mp_proxy->signature( ).role( ),
                tNotificationData::UNSUBSCRIBE,
                mp_proxy->id( ),
                mp_proxy->server( ).id( )
-            ),
-            mp_proxy->server( ).context( )
-         );
+            )
+         )->send( mp_proxy->server( ).context( ) );
          event_id_iterator->second.mp_event_data = nullptr;
       }
 
