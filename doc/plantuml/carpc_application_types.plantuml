@@ -1,0 +1,40 @@
+@startuml(id=application)
+
+
+
+class Process
+{
+   bool start( const Thread::Configuration::tVector& )
+   bool stop( )
+   void boot( )
+}
+
+interface IThread
+{
+   {abstract} virtual bool start( ) = 0
+   {abstract} virtual bool stop( ) = 0
+   {abstract} virtual bool boot( const std::string& ) = 0
+   {abstract} virtual bool shutdown( const std::string& ) = 0
+}
+
+class ThreadIPC
+{
+}
+
+class Thread
+{
+}
+
+interface IComponent
+{
+   virtual {abstract} void process_boot( const std::string& message ) = 0;
+   virtual void process_shutdown( carpc::callback::tBlocker blocker )
+}
+
+class Component
+{
+}
+
+
+
+@enduml

@@ -1,15 +1,26 @@
 @startuml carpc_application
 
+!include carpc_application_types.plantuml!application
 
 
-Process *--> "1" ThreadIPC
-Process "0" *--> "i" Thread
 
-Thread *--> "1" RootComponent
-Thread "0" *--> "j" Component
+Process *-- "1" ThreadIPC
+Process *-- "0..i" Thread
 
-Server "m" <--* "0" Component
-Client "n" <--* "0" Component
+Thread *-- "1" AsyncPriorityQueue
+Thread *-- "1" AsyncConsumerMap
+
+Thread *-- "1" RootComponent
+Thread *-- "0..j" Component
+
+Server "0..m" --* Component
+Client "0..n" --* Component
+
+IComponent <|-- RootComponent
+IComponent <|-- Component
+
+IThread <|-- ThreadIPC
+IThread <|-- Thread
 
 
 
