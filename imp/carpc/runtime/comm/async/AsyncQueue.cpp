@@ -65,16 +65,6 @@ void AsyncQueue::clear( )
    m_buffer_cond_var.unlock( );
 }
 
-void AsyncQueue::freeze( )
-{
-   m_freezed.store( true );
-}
-
-void AsyncQueue::unfreeze( )
-{
-   m_freezed.store( false );
-}
-
 void AsyncQueue::dump( ) const
 {
    SYS_WRN( "------------------------- START DUMP -------------------------" );
