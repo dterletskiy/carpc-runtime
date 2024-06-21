@@ -139,25 +139,7 @@ void Thread::notify( const carpc::async::IAsync::tSptr p_event )
       }
       case async::eAsyncType::EVENT:
       {
-         auto& consumers_set = m_consumers_map.start_process( p_event->signature( ) );
-         SYS_VRB( "'%s': %zu consumers will be processed", m_name.c_str( ), consumers_set.size( ) );
-         for( carpc::async::IAsync::IConsumer* p_consumer : consumers_set )
-         {
-            process_start( );
-            SYS_VRB( "'%s': start processing event at %ld (%s)",
-                  m_name.c_str( ),
-                  process_started( ),
-                  p_event->signature( )->dbg_name( ).c_str( )
-               );
-            p_event->process( p_consumer );
-            SYS_VRB( "'%s': finished processing event started at %ld (%s)",
-                  m_name.c_str( ),
-                  process_started( ),
-                  p_event->signature( )->dbg_name( ).c_str( )
-               );
-         }
-         process_stop( );
-         m_consumers_map.finish_process( );
+         m_consumers_map.process( p_event, m_process_started );
 
          break;
       }

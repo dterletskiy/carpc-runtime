@@ -63,7 +63,7 @@ namespace carpc::application {
       protected:
          void process_start( );
          void process_stop( );
-      private:
+      protected:
          std::size_t                   m_wd_timeout = 0;
          std::atomic< time_t >         m_process_started = 0;
    };

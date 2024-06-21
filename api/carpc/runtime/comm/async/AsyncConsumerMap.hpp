@@ -42,33 +42,13 @@ namespace carpc::async {
          tAsyncConsumersMap               m_map;
 
       public:
-         const tConsumersSet& start_process( const IAsync::ISignature::tSptr );
-         bool finish_process( );
+         bool process( const IAsync::tSptr, std::atomic< time_t >& );
       private:
-         class ProcessingSignature
-         {
-            public:
-               using tOpt = std::optional< ProcessingSignature >;
-
-               ProcessingSignature( const std::string& );
-
-               const tConsumersSet& start( const IAsync::ISignature::tSptr, tConsumersSet& );
-               bool finish( tConsumersSet& );
-               void reset( );
-               bool is_processing( ) const;
-               bool is_processing( const IAsync::ISignature::tSptr ) const;
-
-            public:
-               const IAsync::ISignature::tSptr signature( ) const;
-               bool add_consumer_to_remove( IAsync::IConsumer* );
-               bool remove_consumer_to_remove( IAsync::IConsumer* );
-            private:
-               IAsync::ISignature::tSptr     mp_signature = nullptr;
-               tConsumersSet                 m_consumers_to_process;
-               tConsumersSet                 m_consumers_to_remove;
-               const std::string&            m_name;
-         };
-         ProcessingSignature              m_processing;
+         bool is_processing( const IAsync::ISignature::tSptr p_signature ) const;
+      public:
+         IAsync::tSptr                    mp_processing_async = nullptr;
+         tConsumersSet                    m_consumers_to_add;
+         tConsumersSet                    m_consumers_to_remove;
 
       public:
          void dump( ) const;
