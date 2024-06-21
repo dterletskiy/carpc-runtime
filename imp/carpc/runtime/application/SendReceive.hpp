@@ -62,7 +62,7 @@ namespace carpc::application {
          };
 
          // Structure for Connection to ServiceBrocker.
-         // Contains client socket what should be connected to ServiceBrocket.
+         // Contains client socket what should be connected to ServiceBrocker.
          // Via this socket current application will send information about provided and
          // required IPC interfaces to ServiceBrocker and will receive information about
          // other applications what provide required interfaces from ServiceBrocker.

@@ -187,7 +187,7 @@ const bool IEvent::send( const application::Context& to_context )
       application::IThread::tSptr p_thread = carpc::application::Process::instance( )->current_thread( );
       if( nullptr == p_thread )
       {
-         SYS_ERR( "sending event not from application thread" );
+         SYS_ERR( "sending local event not from application thread" );
          return false;
       }
 
