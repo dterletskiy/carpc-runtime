@@ -2,6 +2,7 @@
 
 #include <atomic>
 
+#include "carpc/runtime/comm/async/AsyncProcessor.hpp"
 #include "carpc/runtime/application/IThread.hpp"
 
 
@@ -10,10 +11,6 @@ namespace carpc::application {
 
    class ThreadBase : public IThread
    {
-      protected:
-         using tEventCollection = async::AsyncPriorityQueue;
-         using tConsumerMap = async::AsyncConsumerMap;
-
       public:
          ThreadBase( const std::string&, const std::size_t );
          ~ThreadBase( );
@@ -27,7 +24,7 @@ namespace carpc::application {
          void dump( ) const override;
 
       private:
-         bool send( const carpc::async::IAsync::tSptr, const application::Context& ) override;
+         bool send( const async::IAsync::tSptr, const application::Context& ) override;
 
       private:
          const thread::ID& id( ) const override final;
@@ -44,28 +41,17 @@ namespace carpc::application {
       protected:
          std::size_t                   m_wd_timeout = 0;
 
-      public:
+      protected:
+         void notify( const async::IAsync::tSptr );
+         async::IAsync::tSptr get_event( );
+      private:
+         void set_notification( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) override final;
+         void clear_notification( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) override final;
+         void clear_all_notifications( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) override final;
+         bool is_subscribed( const async::IAsync::tSptr );
+         bool insert_event( const async::IAsync::tSptr ) override final;
          const time_t process_started( ) const override final;
-      protected:
-         void process_start( );
-         void process_stop( );
-      protected:
-         std::atomic< time_t >         m_process_started = 0;
-
-      protected:
-         carpc::async::IAsync::tSptr get_event( );
-      private:
-         bool insert_event( const carpc::async::IAsync::tSptr ) override;
-         tEventCollection                             m_event_queue;
-
-      protected:
-         void notify( const carpc::async::IAsync::tSptr );
-      private:
-         void set_notification( const carpc::async::IAsync::ISignature::tSptr, carpc::async::IAsync::IConsumer* ) override;
-         void clear_notification( const carpc::async::IAsync::ISignature::tSptr, carpc::async::IAsync::IConsumer* ) override;
-         void clear_all_notifications( const carpc::async::IAsync::ISignature::tSptr, carpc::async::IAsync::IConsumer* ) override;
-         bool is_subscribed( const carpc::async::IAsync::tSptr );
-         tConsumerMap                                 m_consumers_map;
+         async::AsyncProcessor         m_async_processor;
    };
 
 
@@ -91,19 +77,7 @@ namespace carpc::application {
    inline
    const time_t ThreadBase::process_started( ) const
    {
-      return m_process_started.load( );
-   }
-
-   inline
-   void ThreadBase::process_start( )
-   {
-      return m_process_started.store( time( nullptr ) );
-   }
-
-   inline
-   void ThreadBase::process_stop( )
-   {
-      return m_process_started.store( 0 );
+      return m_async_processor.process_started( );
    }
 
 } // namespace carpc::application

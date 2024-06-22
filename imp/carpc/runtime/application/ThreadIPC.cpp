@@ -50,7 +50,7 @@ void ThreadIPC::thread_loop( )
 
    while( m_started.load( ) )
    {
-      carpc::async::IAsync::tSptr p_event = get_event( );
+      async::IAsync::tSptr p_event = get_event( );
       SYS_VRB( "'%s': processing event (%s)", m_name.c_str( ), p_event->signature( )->dbg_name( ).c_str( ) );
       notify( p_event );
    }
@@ -95,7 +95,7 @@ void ThreadIPC::shutdown( const std::string& message )
    stop( );
 }
 
-bool ThreadIPC::send( const carpc::async::IAsync::tSptr p_event, const application::Context& to_context )
+bool ThreadIPC::send( const async::IAsync::tSptr p_event, const application::Context& to_context )
 {
    return mp_send_receive->send( std::static_pointer_cast< async::IEvent >( p_event ), to_context );
 }

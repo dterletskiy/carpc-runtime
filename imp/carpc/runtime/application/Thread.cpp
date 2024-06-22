@@ -37,7 +37,7 @@ void Thread::thread_loop( )
 
    while( m_started.load( ) )
    {
-      carpc::async::IAsync::tSptr p_event = get_event( );
+      async::IAsync::tSptr p_event = get_event( );
       SYS_VRB( "'%s': processing event (%s)", m_name.c_str( ), p_event->signature( )->dbg_name( ).c_str( ) );
       notify( p_event );
    }

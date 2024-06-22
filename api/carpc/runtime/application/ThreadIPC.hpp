@@ -35,7 +35,7 @@ namespace carpc::application {
          carpc::os::Thread                            m_thread;
 
       public:
-         bool send( const carpc::async::IAsync::tSptr, const application::Context& ) override;
+         bool send( const async::IAsync::tSptr, const application::Context& ) override;
       private:
          SendReceive*                                 mp_send_receive;
    };
