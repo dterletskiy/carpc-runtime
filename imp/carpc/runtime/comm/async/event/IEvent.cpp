@@ -172,12 +172,12 @@ const bool IEvent::send( const application::Context& to_context )
       }
       else
       {
-         result &= p_thread_ipc->insert_event( p_event );
+         result &= p_thread_ipc->insert_async( p_event );
       }
 
       application::IThread::tSptrList thread_list = carpc::application::Process::instance( )->thread_list( );
       for( auto p_thread : thread_list )
-         result &= p_thread->insert_event( p_event );
+         result &= p_thread->insert_async( p_event );
 
       return result;
    }
@@ -191,7 +191,7 @@ const bool IEvent::send( const application::Context& to_context )
          return false;
       }
 
-      return p_thread->insert_event( p_event );
+      return p_thread->insert_async( p_event );
    }
    else
    {
@@ -203,7 +203,7 @@ const bool IEvent::send( const application::Context& to_context )
          return false;
       }
 
-      return p_thread->insert_event( p_event );
+      return p_thread->insert_async( p_event );
    }
 
    return true;

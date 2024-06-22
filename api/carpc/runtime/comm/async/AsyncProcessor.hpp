@@ -23,7 +23,7 @@ namespace carpc::async {
    class AsyncProcessor
    {
       private:
-         using tEventCollection = async::AsyncPriorityQueue;
+         using tAsyncCollection = async::AsyncPriorityQueue;
          using tConsumerMap = async::AsyncConsumerMap;
 
       public:
@@ -46,13 +46,13 @@ namespace carpc::async {
          std::atomic< time_t >         m_process_started = 0;
 
       public:
-         IAsync::tSptr get_event( );
-         bool insert_event( const IAsync::tSptr );
+         IAsync::tSptr get_async( );
+         bool insert_async( const IAsync::tSptr );
       private:
-         tEventCollection              m_event_queue;
+         tAsyncCollection              m_async_queue;
 
       public:
-         void notify( const IAsync::tSptr );
+         void notify_consumers( const IAsync::tSptr );
          void set_notification( const IAsync::ISignature::tSptr, IAsync::IConsumer* );
          void clear_notification( const IAsync::ISignature::tSptr, IAsync::IConsumer* );
          void clear_all_notifications( const IAsync::ISignature::tSptr, IAsync::IConsumer* );

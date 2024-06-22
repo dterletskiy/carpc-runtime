@@ -24,7 +24,7 @@ ThreadBase::~ThreadBase( )
    SYS_VRB( "'%s': destroyed", m_name.c_str( ) );
 }
 
-bool ThreadBase::insert_event( const async::IAsync::tSptr p_event )
+bool ThreadBase::insert_async( const async::IAsync::tSptr p_async )
 {
    if( false == m_started.load( ) )
    {
@@ -32,17 +32,17 @@ bool ThreadBase::insert_event( const async::IAsync::tSptr p_event )
       return false;
    }
 
-   return m_async_processor.insert_event( p_event );
+   return m_async_processor.insert_async( p_async );
 }
 
-carpc::async::IAsync::tSptr ThreadBase::get_event( )
+carpc::async::IAsync::tSptr ThreadBase::get_async( )
 {
-   return m_async_processor.get_event( );
+   return m_async_processor.get_async( );
 }
 
-void ThreadBase::notify( const async::IAsync::tSptr p_event )
+void ThreadBase::notify_consumers( const async::IAsync::tSptr p_async )
 {
-   m_async_processor.notify( p_event );
+   m_async_processor.notify_consumers( p_async );
 }
 
 void ThreadBase::set_notification( const async::IAsync::ISignature::tSptr p_signature, async::IAsync::IConsumer* p_consumer )
@@ -60,9 +60,9 @@ void ThreadBase::clear_all_notifications( const async::IAsync::ISignature::tSptr
    m_async_processor.clear_all_notifications( p_signature, p_consumer );
 }
 
-bool ThreadBase::is_subscribed( const async::IAsync::tSptr p_event )
+bool ThreadBase::is_subscribed( const async::IAsync::tSptr p_async )
 {
-   return m_async_processor.is_subscribed( p_event );
+   return m_async_processor.is_subscribed( p_async );
 }
 
 void ThreadBase::dump( ) const

@@ -42,14 +42,14 @@ namespace carpc::application {
          std::size_t                   m_wd_timeout = 0;
 
       protected:
-         void notify( const async::IAsync::tSptr );
-         async::IAsync::tSptr get_event( );
+         void notify_consumers( const async::IAsync::tSptr );
+         async::IAsync::tSptr get_async( );
       private:
          void set_notification( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) override final;
          void clear_notification( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) override final;
          void clear_all_notifications( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) override final;
          bool is_subscribed( const async::IAsync::tSptr );
-         bool insert_event( const async::IAsync::tSptr ) override final;
+         bool insert_async( const async::IAsync::tSptr ) override final;
          const time_t process_started( ) const override final;
          async::AsyncProcessor         m_async_processor;
    };

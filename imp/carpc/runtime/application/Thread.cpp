@@ -37,9 +37,12 @@ void Thread::thread_loop( )
 
    while( m_started.load( ) )
    {
-      async::IAsync::tSptr p_event = get_event( );
-      SYS_VRB( "'%s': processing event (%s)", m_name.c_str( ), p_event->signature( )->dbg_name( ).c_str( ) );
-      notify( p_event );
+      async::IAsync::tSptr p_async = get_async( );
+      SYS_VRB( "'%s': processing async object (%s)",
+            m_name.c_str( ),
+            p_async->signature( )->dbg_name( ).c_str( )
+         );
+      notify_consumers( p_async );
    }
 
    // Destroying components

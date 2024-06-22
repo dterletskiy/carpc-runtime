@@ -37,7 +37,7 @@ namespace carpc::application {
          virtual void set_notification( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) = 0;
          virtual void clear_notification( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) = 0;
          virtual void clear_all_notifications( const async::IAsync::ISignature::tSptr, async::IAsync::IConsumer* ) = 0;
-         virtual bool insert_event( const async::IAsync::tSptr ) = 0;
+         virtual bool insert_async( const async::IAsync::tSptr ) = 0;
          virtual bool send( const async::IAsync::tSptr, const application::Context& ) = 0;
          virtual const std::size_t wd_timeout( ) const = 0;
          virtual const time_t process_started( ) const = 0;

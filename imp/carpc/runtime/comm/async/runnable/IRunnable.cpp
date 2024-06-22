@@ -71,12 +71,12 @@ const bool IRunnable::send_to( const application::Context& to_context )
       }
       else
       {
-         result &= p_thread_ipc->insert_event( p_runnable );
+         result &= p_thread_ipc->insert_async( p_runnable );
       }
 
       application::IThread::tSptrList thread_list = carpc::application::Process::instance( )->thread_list( );
       for( auto p_thread : thread_list )
-         result &= p_thread->insert_event( p_runnable );
+         result &= p_thread->insert_async( p_runnable );
 
       return result;
    }
@@ -90,7 +90,7 @@ const bool IRunnable::send_to( const application::Context& to_context )
          return false;
       }
 
-      return p_thread->insert_event( p_runnable );
+      return p_thread->insert_async( p_runnable );
    }
    else
    {
@@ -102,7 +102,7 @@ const bool IRunnable::send_to( const application::Context& to_context )
          return false;
       }
 
-      return p_thread->insert_event( p_runnable );
+      return p_thread->insert_async( p_runnable );
    }
 
    return true;
