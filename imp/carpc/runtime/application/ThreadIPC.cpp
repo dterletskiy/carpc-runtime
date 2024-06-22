@@ -1,6 +1,4 @@
-#include "carpc/runtime/comm/async/event/Event.hpp"
 #include "carpc/runtime/application/Context.hpp"
-#include "carpc/runtime/application/Process.hpp"
 #include "carpc/runtime/application/ThreadIPC.hpp"
 #include "SendReceive.hpp"
 #include "SystemEventConsumer.hpp"
@@ -16,10 +14,8 @@ using namespace carpc::application;
 
 
 ThreadIPC::ThreadIPC( )
-   : IThread( "IPC", 10 )
+   : ThreadBase( "IPC", 10 )
    , m_thread( std::bind( &ThreadIPC::thread_loop, this ) )
-   , m_event_queue( configuration::current( ).max_priority, "IPC" )
-   , m_consumers_map( "IPC" )
 {
    SYS_VRB( "'%s': created", m_name.c_str( ) );
    mp_send_receive = new SendReceive;
@@ -29,6 +25,19 @@ ThreadIPC::~ThreadIPC( )
 {
    SYS_VRB( "'%s': destroyed", m_name.c_str( ) );
    delete mp_send_receive;
+}
+
+bool ThreadIPC::started( ) const
+{
+   return m_started.load( ) && mp_send_receive->started( );
+}
+
+bool ThreadIPC::wait( )
+{
+   const bool started = m_thread.join( );
+   m_started.store( started );
+   const bool stopped = mp_send_receive->wait( );
+   return !m_started.load( ) && !stopped;
 }
 
 void ThreadIPC::thread_loop( )
@@ -75,19 +84,6 @@ void ThreadIPC::stop( )
    mp_send_receive->stop( );
 }
 
-bool ThreadIPC::started( ) const
-{
-   return m_started.load( ) && mp_send_receive->started( );
-}
-
-bool ThreadIPC::wait( )
-{
-   const bool started = m_thread.join( );
-   m_started.store( started );
-   const bool stopped = mp_send_receive->wait( );
-   return !m_started.load( ) && !stopped;
-}
-
 void ThreadIPC::boot( const std::string& message )
 {
    SYS_INF( "'%s': booting", m_name.c_str( ) );
@@ -97,102 +93,6 @@ void ThreadIPC::shutdown( const std::string& message )
 {
    SYS_INF( "'%s': shutting down", m_name.c_str( ) );
    stop( );
-}
-
-bool ThreadIPC::insert_event( const carpc::async::IAsync::tSptr p_event )
-{
-   if( false == m_started.load( ) )
-   {
-      SYS_WRN( "'%s': is not started", m_name.c_str( ) );
-      return false;
-   }
-
-   if( false == is_subscribed( p_event ) )
-   {
-      SYS_INF( "'%s': there are no consumers for event '%s'", m_name.c_str( ), p_event->signature( )->dbg_name( ).c_str( ) );
-      return false;
-   }
-
-   return m_event_queue.insert( p_event );
-}
-
-carpc::async::IAsync::tSptr ThreadIPC::get_event( )
-{
-   return m_event_queue.get( );
-}
-
-void ThreadIPC::notify( const carpc::async::IAsync::tSptr p_event )
-{
-   switch( p_event->type( ) )
-   {
-      case async::eAsyncType::CALLABLE:
-      case async::eAsyncType::RUNNABLE:
-      {
-         process_start( );
-         SYS_VRB( "'%s': start processing runnable at %ld (%s)",
-               m_name.c_str( ),
-               process_started( ),
-               p_event->signature( )->dbg_name( ).c_str( )
-            );
-         p_event->process( );
-         SYS_VRB( "'%s': finished processing runnable started at %ld (%s)",
-               m_name.c_str( ),
-               process_started( ),
-               p_event->signature( )->dbg_name( ).c_str( )
-            );
-         process_stop( );
-
-         break;
-      }
-      case async::eAsyncType::EVENT:
-      {
-         m_consumers_map.process( p_event, m_process_started );
-
-         break;
-      }
-      default: break;
-   }
-}
-
-void ThreadIPC::set_notification(
-            const carpc::async::IAsync::ISignature::tSptr p_signature, carpc::async::IAsync::IConsumer* p_consumer
-         )
-{
-   m_consumers_map.set_notification( p_signature, p_consumer );
-}
-
-void ThreadIPC::clear_notification(
-            const carpc::async::IAsync::ISignature::tSptr p_signature, carpc::async::IAsync::IConsumer* p_consumer
-         )
-{
-   m_consumers_map.clear_notification( p_signature, p_consumer );
-}
-
-void ThreadIPC::clear_all_notifications(
-            const carpc::async::IAsync::ISignature::tSptr p_signature, carpc::async::IAsync::IConsumer* p_consumer
-         )
-{
-   m_consumers_map.clear_all_notifications( p_signature, p_consumer );
-}
-
-bool ThreadIPC::is_subscribed( const carpc::async::IAsync::tSptr p_event )
-{
-   switch( p_event->type( ) )
-   {
-      case async::eAsyncType::CALLABLE:
-      case async::eAsyncType::RUNNABLE:   return true;
-      case async::eAsyncType::EVENT:      return m_consumers_map.is_subscribed( p_event->signature( ) );
-   }
-   return false;
-}
-
-void ThreadIPC::dump( ) const
-{
-   SYS_DUMP_START( );
-   SYS_INF( "%s:", m_name.c_str( ) );
-   m_event_queue.dump( );
-   m_consumers_map.dump( );
-   SYS_DUMP_END( );
 }
 
 bool ThreadIPC::send( const carpc::async::IAsync::tSptr p_event, const application::Context& to_context )

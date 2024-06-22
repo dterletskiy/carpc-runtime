@@ -1,7 +1,5 @@
 #pragma once
 
-#include <atomic>
-
 #include "carpc/base/common/ID.hpp"
 #include "carpc/oswrappers/Thread.hpp"
 #include "carpc/runtime/comm/async/IAsync.hpp"
@@ -23,12 +21,8 @@ namespace carpc::application {
          using tWptr = std::weak_ptr< IThread >;
          using tSptrList = std::list< tSptr >;
 
-      protected:
-         using tEventCollection = async::AsyncPriorityQueue;
-         using tConsumerMap = async::AsyncConsumerMap;
-
       public:
-         IThread( const std::string&, const std::size_t );
+         IThread( ) = default;
          virtual ~IThread( ) = default;
          IThread( const IThread& ) = delete;
          IThread& operator=( const IThread& ) = delete;
@@ -49,61 +43,12 @@ namespace carpc::application {
          virtual void clear_all_notifications( const carpc::async::IAsync::ISignature::tSptr, carpc::async::IAsync::IConsumer* ) = 0;
          virtual bool insert_event( const carpc::async::IAsync::tSptr ) = 0;
          virtual bool send( const carpc::async::IAsync::tSptr, const application::Context& ) = 0;
+         virtual const std::size_t wd_timeout( ) const = 0;
+         virtual const time_t process_started( ) const = 0;
 
       public:
-         const thread::ID& id( ) const;
-         const thread::Name& name( ) const;
-      protected:
-         thread::ID     m_id = thread::ID::generate( );
-         thread::Name   m_name{ "NoName_Thread" };
-
-      public:
-         const std::size_t wd_timeout( ) const;
-         const time_t process_started( ) const;
-      protected:
-         void process_start( );
-         void process_stop( );
-      protected:
-         std::size_t                   m_wd_timeout = 0;
-         std::atomic< time_t >         m_process_started = 0;
+         virtual const thread::ID& id( ) const = 0;
+         virtual const thread::Name& name( ) const = 0;
    };
-
-
-
-   inline
-   const thread::Name& IThread::name( ) const
-   {
-      return m_name;
-   }
-
-   inline
-   const thread::ID& IThread::id( ) const
-   {
-      return m_id;
-   }
-
-   inline
-   const std::size_t IThread::wd_timeout( ) const
-   {
-      return m_wd_timeout;
-   }
-
-   inline
-   const time_t IThread::process_started( ) const
-   {
-      return m_process_started.load( );
-   }
-
-   inline
-   void IThread::process_start( )
-   {
-      return m_process_started.store( time( nullptr ) );
-   }
-
-   inline
-   void IThread::process_stop( )
-   {
-      return m_process_started.store( 0 );
-   }
 
 } // namespace carpc::application

@@ -1,15 +1,13 @@
 #pragma once
 
-#include <atomic>
-
 #include "carpc/runtime/application/IComponent.hpp"
-#include "carpc/runtime/application/IThread.hpp"
+#include "carpc/runtime/application/ThreadBase.hpp"
 
 
 
 namespace carpc::application {
 
-   class Thread : public IThread
+   class Thread : public ThreadBase
    {
       public:
          struct Configuration
@@ -40,30 +38,10 @@ namespace carpc::application {
          const carpc::os::Thread& thread( ) const override;
          void thread_loop( );
          carpc::os::Thread                            m_thread;
-         std::atomic< bool >                          m_started = false;
-
-      private:
-         bool insert_event( const carpc::async::IAsync::tSptr ) override;
-         carpc::async::IAsync::tSptr get_event( );
-         tEventCollection                             m_event_queue;
-
-      private:
-         void set_notification( const carpc::async::IAsync::ISignature::tSptr, carpc::async::IAsync::IConsumer* ) override;
-         void clear_notification( const carpc::async::IAsync::ISignature::tSptr, carpc::async::IAsync::IConsumer* ) override;
-         void clear_all_notifications( const carpc::async::IAsync::ISignature::tSptr, carpc::async::IAsync::IConsumer* ) override;
-         bool is_subscribed( const carpc::async::IAsync::tSptr );
-         void notify( const carpc::async::IAsync::tSptr );
-         tConsumerMap                                 m_consumers_map;
 
       private:
          IComponent::tSptrList                        m_components;
          IComponent::tCreatorVector                   m_component_creators;
-
-      private:
-         void dump( ) const override;
-
-      private:
-         bool send( const carpc::async::IAsync::tSptr, const application::Context& ) override;
    };
 
 
