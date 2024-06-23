@@ -35,9 +35,7 @@ namespace carpc::application {
          bool wait( ) override;
 
       private:
-         const carpc::os::Thread& thread( ) const override;
-         void thread_loop( );
-         carpc::os::Thread                            m_thread;
+         void thread_loop( ) override;
 
       private:
          IComponent::tSptrList                        m_components;
@@ -45,12 +43,6 @@ namespace carpc::application {
    };
 
 
-
-   inline
-   const carpc::os::Thread& Thread::thread( ) const
-   {
-      return m_thread;
-   }
 
    inline
    bool Thread::started( ) const

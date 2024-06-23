@@ -30,22 +30,12 @@ namespace carpc::application {
          bool wait( ) override;
 
       private:
-         const carpc::os::Thread& thread( ) const override;
-         void thread_loop( );
-         carpc::os::Thread                            m_thread;
+         void thread_loop( ) override;
 
       public:
          bool send( const async::IAsync::tSptr, const application::Context& ) override;
       private:
          SendReceive*                                 mp_send_receive;
    };
-
-
-
-   inline
-   const carpc::os::Thread& ThreadIPC::thread( ) const
-   {
-      return m_thread;
-   }
 
 } // namespace carpc::application

@@ -15,7 +15,6 @@ using namespace carpc::application;
 
 ThreadIPC::ThreadIPC( )
    : ThreadBase( "IPC", 10 )
-   , m_thread( std::bind( &ThreadIPC::thread_loop, this ) )
 {
    SYS_VRB( "'%s': created", m_name.c_str( ) );
    mp_send_receive = new SendReceive;

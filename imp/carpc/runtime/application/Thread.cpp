@@ -12,7 +12,6 @@ using namespace carpc::application;
 
 Thread::Thread( const Configuration& config )
    : ThreadBase( config.m_name, config.m_wd_timeout )
-   , m_thread( std::bind( &Thread::thread_loop, this ) )
    , m_components( )
    , m_component_creators( config.m_component_creators )
 {

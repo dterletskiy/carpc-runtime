@@ -12,6 +12,7 @@ using namespace carpc::application;
 
 ThreadBase::ThreadBase( const std::string& name, const std::size_t wd_timeout )
    : IThread( )
+   , m_thread( std::bind( &ThreadBase::thread_loop_base, this ) )
    , m_name( name )
    , m_wd_timeout( wd_timeout )
    , m_async_processor( name )
@@ -22,6 +23,11 @@ ThreadBase::ThreadBase( const std::string& name, const std::size_t wd_timeout )
 ThreadBase::~ThreadBase( )
 {
    SYS_VRB( "'%s': destroyed", m_name.c_str( ) );
+}
+
+void ThreadBase::thread_loop_base( )
+{
+   thread_loop( );
 }
 
 bool ThreadBase::insert_async( const async::IAsync::tSptr p_async )

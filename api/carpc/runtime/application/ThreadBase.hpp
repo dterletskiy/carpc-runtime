@@ -17,7 +17,12 @@ namespace carpc::application {
          ThreadBase( const ThreadBase& ) = delete;
          ThreadBase& operator=( const ThreadBase& ) = delete;
 
+      private:
+         const carpc::os::Thread& thread( ) const override final;
+         void thread_loop_base( );
+         virtual void thread_loop( ) = 0;
       protected:
+         carpc::os::Thread                            m_thread;
          std::atomic< bool >                          m_started = false;
 
       private:
@@ -55,6 +60,12 @@ namespace carpc::application {
    };
 
 
+
+   inline
+   const carpc::os::Thread& ThreadBase::thread( ) const
+   {
+      return m_thread;
+   }
 
    inline
    const thread::Name& ThreadBase::name( ) const
