@@ -10,7 +10,6 @@ namespace carpc::async {
 
    class ICallable
       : public IAsync
-      , public std::enable_shared_from_this< ICallable >
    {
       public:
          using tSptr = std::shared_ptr< ICallable >;

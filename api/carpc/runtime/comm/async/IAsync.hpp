@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "carpc/base/common/Priority.hpp"
+#include "carpc/runtime/application/Context.hpp"
 #include "carpc/runtime/comm/async/Types.hpp"
 
 
@@ -11,6 +12,7 @@
 namespace carpc::async {
 
    class IAsync
+      : public std::enable_shared_from_this< IAsync >
    {
       public:
          using tSptr = std::shared_ptr< IAsync >;
@@ -49,6 +51,8 @@ namespace carpc::async {
          virtual const ISignature::tSptr signature( ) const = 0;
          virtual const tPriority priority( ) const = 0;
          virtual const eAsyncType type( ) const = 0;
+      protected:
+         const bool dispatch( const application::Context& to_context );
    };
 
 } // namespace carpc::async

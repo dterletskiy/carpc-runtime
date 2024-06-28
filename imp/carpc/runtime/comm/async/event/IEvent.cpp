@@ -144,69 +144,7 @@ const bool IEvent::clear_all_notifications( IAsync::IConsumer* p_consumer, const
 
 const bool IEvent::send( const application::Context& to_context )
 {
-   auto p_event = shared_from_this( );
-   SYS_VRB( "event: %s", p_event->signature( )->dbg_name( ).c_str( ) );
-
-   if( to_context.is_external( ) )
-   {
-      SYS_INF( "sending IPC event" );
-      application::IThread::tSptr p_thread_ipc = application::Process::instance( )->thread_ipc( );
-      if( nullptr == p_thread_ipc )
-      {
-         SYS_ERR( "application IPC thread is not started" );
-         return false;
-      }
-
-      return p_thread_ipc->send( p_event, to_context );
-   }
-   else if( application::thread::broadcast == to_context.tid( ) )
-   {
-      SYS_INF( "sending broadcast event to all application threads" );
-      bool result = true;
-
-      application::IThread::tSptr p_thread_ipc = application::Process::instance( )->thread_ipc( );
-      if( nullptr == p_thread_ipc )
-      {
-         SYS_ERR( "application IPC thread is not started" );
-         result = false;
-      }
-      else
-      {
-         result &= p_thread_ipc->insert_async( p_event );
-      }
-
-      application::IThread::tSptrList thread_list = carpc::application::Process::instance( )->thread_list( );
-      for( auto p_thread : thread_list )
-         result &= p_thread->insert_async( p_event );
-
-      return result;
-   }
-   else if( application::thread::local == to_context.tid( ) )
-   {
-      SYS_INF( "sending event to current application thread: %s", to_context.tid( ).dbg_name( ).c_str( ) );
-      application::IThread::tSptr p_thread = carpc::application::Process::instance( )->current_thread( );
-      if( nullptr == p_thread )
-      {
-         SYS_ERR( "sending local event not from application thread" );
-         return false;
-      }
-
-      return p_thread->insert_async( p_event );
-   }
-   else
-   {
-      SYS_INF( "sending event to %s application thread", to_context.tid( ).dbg_name( ).c_str( ) );
-      application::IThread::tSptr p_thread = carpc::application::Process::instance( )->thread( to_context.tid( ) );
-      if( nullptr == p_thread )
-      {
-         SYS_ERR( "sending event to unknown application thread" );
-         return false;
-      }
-
-      return p_thread->insert_async( p_event );
-   }
-
-   return true;
+   return dispatch( to_context );
 }
 
 void IEvent::process( IAsync::IConsumer* p_consumer ) const

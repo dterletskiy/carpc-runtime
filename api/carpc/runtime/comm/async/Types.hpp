@@ -267,6 +267,7 @@ namespace carpc::async {
 
    enum class eAsyncType : std::uint8_t { EVENT, RUNNABLE, CALLABLE };
    const char* c_str( const eAsyncType );
+   const char* name( const eAsyncType );
 
 } // namespace carpc::async
 

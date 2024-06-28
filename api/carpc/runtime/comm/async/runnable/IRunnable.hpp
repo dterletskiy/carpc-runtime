@@ -12,7 +12,6 @@ namespace carpc::async {
 
    class IRunnable
       : public IAsync
-      , public std::enable_shared_from_this< IRunnable >
    {
       public:
          using tSptr = std::shared_ptr< IRunnable >;
@@ -78,9 +77,7 @@ namespace carpc::async {
           * to the same context. Current funtion returns false for this case with appropriate message.
           *
           *****************************************************************************/
-         const bool send( const application::Context& to_context, const bool is_block = false );
-      private:
-         const bool send_to( const application::Context& to_context = application::Context::internal_local );
+         const bool send( const application::Context& to_context = application::Context::internal_local, const bool is_block = false );
 
       private:
          void process( IAsync::IConsumer* ) const override;

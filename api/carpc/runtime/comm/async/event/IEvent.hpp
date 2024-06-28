@@ -16,7 +16,6 @@ namespace carpc::async {
 
    class IEvent
       : public IAsync
-      , public std::enable_shared_from_this< IEvent >
    {
       public:
          using tSptr = std::shared_ptr< IEvent >;
