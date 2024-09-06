@@ -126,17 +126,17 @@ namespace carpc::async {
 
    void function_0( )
    {
-      SYS_DBG( );
+      MSG_DBG( );
    }
 
    void function_1( int id )
    {
-      SYS_DBG( "id: %d", id );
+      MSG_DBG( "id: %d", id );
    }
 
    void function_2( const int& id )
    {
-      SYS_DBG( "id: %d", id );
+      MSG_DBG( "id: %d", id );
    }
 
    void function_3( const std::size_t& id, const std::string& name )
