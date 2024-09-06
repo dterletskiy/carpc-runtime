@@ -187,7 +187,7 @@ namespace carpc::service::experimental::__private_proxy__ {
       // subscription functionality will not be executed.
       // So now first we remove client from sequence-client map and only then process event by the client.
       // This was detected when client calles request_A, process response_A inside wich agine calles
-      // request_a. In this case second response_A will not be processed. 
+      // request_A. In this case second response_A will not be processed.
       auto p_client = seq_id_iterator->second;
       client_map.erase( seq_id_iterator );
       p_client->process_event( event );
