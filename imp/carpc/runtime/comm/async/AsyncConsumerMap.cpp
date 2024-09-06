@@ -50,7 +50,6 @@ void AsyncConsumerMap::set_notification( const IAsync::ISignature::tSptr p_signa
          iterator_map->second.emplace( p_consumer );
       }
    }
-
 }
 
 void AsyncConsumerMap::clear_notification( const IAsync::ISignature::tSptr p_signature, IAsync::IConsumer* p_consumer )

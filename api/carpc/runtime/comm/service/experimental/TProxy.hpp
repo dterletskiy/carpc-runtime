@@ -145,7 +145,7 @@ namespace carpc::service::experimental::__private_proxy__ {
       auto& client_map = event_id_iterator->second;
 
       // In case if client map for current request contains only one client this client
-      // will be removed at the end of current scope and client map will pe empty.
+      // will be removed at the end of current scope and client map will be empty.
       // This means current proxy is not interested in following response notifications
       // related to current request.
       // This also makes sence only in case if response is defined for current method.
@@ -179,8 +179,18 @@ namespace carpc::service::experimental::__private_proxy__ {
          SYS_WRN( "delivered event with sequence id '%s' to unknown client", m_seq_id.dbg_name( ).c_str( ) );
          return false;
       }
-      seq_id_iterator->second->process_event( event );
+      // First we need to remove client pointer from the client map and only then process event
+      // by client. The reason of this sequence is because during processing RESPONSE event
+      // (inside the response) client could call the same related request, In this case client
+      // will be added to the sequence-client map but will no be subscription on RESPONSE event,
+      // because this will be second item in the map and according to logic (optimization)
+      // subscription functionality will not be executed.
+      // So now first we remove client from sequence-client map and only then process event by the client.
+      // This was detected when client calles request_A, process response_A inside wich agine calles
+      // request_a. In this case second response_A will not be processed. 
+      auto p_client = seq_id_iterator->second;
       client_map.erase( seq_id_iterator );
+      p_client->process_event( event );
 
       return true;
    }
