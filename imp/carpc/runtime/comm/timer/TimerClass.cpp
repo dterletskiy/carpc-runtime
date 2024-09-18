@@ -213,7 +213,7 @@ void Timer::process( const carpc::os::os_linux::timer::tID id )
       return;
 
    TimerEvent::Event::create( { m_id.value( ) } )->
-      data( { m_id } )->priority( carpc::priority( ePriority::TIMER ) )->send( m_context );
+      data( { m_id } )->priority( carpc::priority::TIMER )->send( m_context );
 }
 
 

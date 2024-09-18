@@ -23,7 +23,7 @@ namespace carpc::async {
           *    This is because of method carpc::Tpriority::check( )
           *
           **************/
-         AsyncPriorityQueue( const tPriority& max_priority = tPriority::max, const std::string& name = "NoName" );
+         AsyncPriorityQueue( const std::string& name = "NoName", const tPriority& max_priority = tPriority::max );
          ~AsyncPriorityQueue( );
          AsyncPriorityQueue( const AsyncPriorityQueue& ) = delete;
          AsyncPriorityQueue& operator=( const AsyncPriorityQueue& ) = delete;

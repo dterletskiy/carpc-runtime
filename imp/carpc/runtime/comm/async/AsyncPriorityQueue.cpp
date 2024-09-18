@@ -10,7 +10,7 @@ using namespace carpc::async;
 
 
 
-AsyncPriorityQueue::AsyncPriorityQueue( const tPriority& max_priority, const std::string& name )
+AsyncPriorityQueue::AsyncPriorityQueue( const std::string& name, const tPriority& max_priority )
    : m_name( name )
 {
    SYS_VRB( "'%s': created", m_name.c_str( ) );

@@ -11,7 +11,7 @@ using namespace carpc::async;
 
 AsyncProcessor::AsyncProcessor( const std::string& name )
    : m_name( name )
-   , m_async_queue( tPriority::max, name )
+   , m_async_queue( name )
    , m_consumers_map( name )
 {
    SYS_VRB( "'%s': created", m_name.c_str( ) );
