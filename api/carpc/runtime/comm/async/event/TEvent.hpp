@@ -1,6 +1,8 @@
 #pragma once
 
+#include "carpc/base/helpers/macros/types.hpp"
 #include "carpc/runtime/comm/async/event/IEvent.hpp"
+#include "carpc/runtime/comm/async/event/TSignature.hpp"
 
 #include "carpc/trace/Trace.hpp"
 #define CLASS_ABBR "TEvent"
@@ -25,38 +27,97 @@ namespace carpc::async {
 
       // constructors
       protected:
-         TEvent( ) = default;
-         TEvent( const tUserSignature& signature )
+         TEvent( )
          {
-            mp_signature = tSignature::create( signature );
+            mp_signature = tSignature::create( );
+         }
+         TEvent( const tUserSignature& user_signature )
+         {
+            mp_signature = tSignature::create( user_signature );
          }
       public:
          ~TEvent( ) override = default;
 
-      // static functions
+      // These static functions are intended to be instantiated for user-defined events
+      // WITHOUT a user-specified signature.
+      // In this case, subscribing to and unsubscribing from such events occurs WITHOUT
+      // specifying a signature.
+      // These functions are templated solely to enable the implementation of the SFINAE mechanism.
       public:
-         static const bool set_notification( tConsumer* p_consumer, const tUserSignature& signature )
-         {
-            return IEvent::set_notification( p_consumer, tSignature::create( signature ) );
-         }
-         template< typename ... TYPES >
-         static const bool set_notification( tConsumer* p_consumer, const TYPES& ... signature_parameters )
-         {
-            return IEvent::set_notification(
-                  p_consumer, tSignature::create( tUserSignature{ signature_parameters... } )
-               );
-         }
-         static const bool clear_notification( tConsumer* p_consumer, const tUserSignature& signature )
-         {
-            return IEvent::clear_notification( p_consumer, tSignature::create( signature ) );
-         }
-         template< typename ... TYPES >
-         static const bool clear_notification( tConsumer* p_consumer, const TYPES& ... signature_parameters )
-         {
-            return IEvent::clear_notification(
-                  p_consumer, tSignature::create( tUserSignature{ signature_parameters... } )
-               );
-         }
+         template< typename U = tUserSignature >
+         static const typename std::enable_if_t< std::is_same_v< U, typename simple::Signature >, bool >
+            set_notification( tConsumer* p_consumer )
+            {
+               return IEvent::set_notification( p_consumer, tSignature::create( ) );
+            }
+
+         template< typename U = tUserSignature >
+         static const typename std::enable_if_t< std::is_same_v< U, typename simple::Signature >, bool >
+            clear_notification( tConsumer* p_consumer )
+            {
+               return IEvent::clear_notification( p_consumer, tSignature::create( ) );
+            }
+
+         template< typename U = tUserSignature >
+         static typename std::enable_if_t< std::is_same_v< U, typename simple::Signature >, tEventPtr >
+            create( )
+            {
+               return tEventPtr( new tEvent( ) );
+            }
+
+      // These static functions are intended to be instantiated for user-defined events
+      // WITH a user-specified signature.
+      // In this case, subscribing to and unsubscribing from such events occurs WITH
+      // specifying a signature or parameters pack for building this signature.
+      // These functions are templated solely to enable the implementation of the SFINAE mechanism.
+      public:
+         template< typename U = tUserSignature >
+         static const typename std::enable_if_t< not std::is_same_v< U, typename simple::Signature >, bool >
+            set_notification( tConsumer* p_consumer, const tUserSignature& user_signature )
+            {
+               return IEvent::set_notification( p_consumer, tSignature::create( user_signature ) );
+            }
+
+         template< typename ... TYPES, typename U = tUserSignature >
+         static const typename std::enable_if_t< ( not std::is_same_v< U, typename simple::Signature > ) and 0 != sizeof...( TYPES ), bool >
+            set_notification( tConsumer* p_consumer, const TYPES& ... signature_parameters )
+            {
+               return IEvent::set_notification(
+                     p_consumer, tSignature::create( tUserSignature{ signature_parameters... } )
+                  );
+            }
+
+         template< typename U = tUserSignature >
+         static const typename std::enable_if_t< not std::is_same_v< U, typename simple::Signature >, bool >
+            clear_notification( tConsumer* p_consumer, const tUserSignature& user_signature )
+            {
+               return IEvent::clear_notification( p_consumer, tSignature::create( user_signature ) );
+            }
+
+         template< typename ... TYPES, typename U = tUserSignature >
+         static const typename std::enable_if_t< ( not std::is_same_v< U, typename simple::Signature > ) and 0 != sizeof...( TYPES ), bool >
+            clear_notification( tConsumer* p_consumer, const TYPES& ... signature_parameters )
+            {
+               return IEvent::clear_notification(
+                     p_consumer, tSignature::create( tUserSignature{ signature_parameters... } )
+                  );
+            }
+
+         template< typename U = tUserSignature >
+         static const typename std::enable_if_t< not std::is_same_v< U, typename simple::Signature >, tEventPtr >
+            create( const tUserSignature& user_signature )
+            {
+               return tEventPtr( new tEvent( user_signature ) );
+            }
+
+         template< typename ... TYPES, typename U = tUserSignature >
+         static const typename std::enable_if_t< ( not std::is_same_v< U, typename simple::Signature > ) and 0 != sizeof...( TYPES ), tEventPtr >
+            create( const TYPES& ... signature_parameters )
+            {
+               return tEventPtr( new tEvent( tUserSignature{ signature_parameters... } ) );
+            }
+
+      public:
          static const bool clear_all_notifications( tConsumer* p_consumer )
          {
             return IEvent::clear_all_notifications( p_consumer, tSignature::create( ) );
@@ -67,19 +128,7 @@ namespace carpc::async {
          // what should be filled during serialization.
          static IEvent::tSptr create_empty( )
          {
-            return std::shared_ptr< tEvent >( new tEvent( tUserSignature( ) ) );
-         }
-         // Create event with user defined signature passed as argument
-         static std::shared_ptr< tEvent > create( const tUserSignature& signature )
-         {
-            return std::shared_ptr< tEvent >( new tEvent( signature ) );
-         }
-         // Create event with user defined signature built using variadic arguments
-         // In case if arguments list is empty, default user signature constructor will be used
-         template< typename ... TYPES >
-         static std::shared_ptr< tEvent > create( const TYPES& ... signature_parameters )
-         {
-            return std::shared_ptr< tEvent >( new tEvent( tUserSignature{ signature_parameters... } ) );
+            return std::shared_ptr< tEvent >( new tEvent( ) );
          }
 
       // virual function
@@ -115,8 +164,16 @@ namespace carpc::async {
 
       // signature
       public:
-         const tUserSignature& info( ) const { return mp_signature->user_signature( ); }
-         const IAsync::ISignature::tSptr signature( ) const override { return mp_signature; }
+         template< typename U = tUserSignature >
+         const typename std::enable_if_t< not std::is_same_v< U, typename simple::Signature >, tUserSignature >&
+            info( ) const
+            {
+               return mp_signature->user_signature( );
+            }
+         const IAsync::ISignature::tSptr signature( ) const override
+         {
+            return mp_signature;
+         }
       private:
          typename tSignature::tSptr mp_signature = nullptr;
 
@@ -160,7 +217,7 @@ namespace carpc::async {
             return std::shared_ptr< tEvent >( shared_from_this( ), this );
          }
       protected:
-         tPriority m_priority = carpc::priority( ePriority::DEFAULT );
+         tPriority m_priority = priority::DEFAULT;
    };
 
 } // namespace carpc::async
