@@ -112,12 +112,39 @@ add_custom_target(
          ${PROJECT_TARGET_NAME}-documentation
    )
 
+
+
 install(
       TARGETS
          ${PROJECT_TARGET_NAME}-shared
          ${PROJECT_TARGET_NAME}-static
-      ARCHIVE DESTINATION lib/carpc
-      LIBRARY DESTINATION lib/carpc
+      ARCHIVE DESTINATION lib/carpc/
+      LIBRARY DESTINATION lib/carpc/
    )
 
-install( DIRECTORY ${PROJECT_SOURCE_DIR}/api/carpc/ DESTINATION include/carpc )
+install( DIRECTORY ${PROJECT_SOURCE_DIR}/api/carpc/ DESTINATION include/carpc/ )
+
+
+
+add_custom_target( deploy_${PROJECT_TARGET_NAME}
+      DEPENDS ${PROJECT_TARGET_NAME}
+      COMMENT "Deploying '${PROJECT_TARGET_NAME}'"
+   )
+
+file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib/carpc/ )
+add_custom_command(
+      TARGET deploy_${PROJECT_TARGET_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy 
+         $<TARGET_FILE:${PROJECT_TARGET_NAME}-static> ${CMAKE_INSTALL_PREFIX}/lib/carpc/
+      COMMAND ${CMAKE_COMMAND} -E copy 
+         $<TARGET_FILE:${PROJECT_TARGET_NAME}-shared> ${CMAKE_INSTALL_PREFIX}/lib/carpc/
+      COMMENT "Copying library articats"
+   )
+
+file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/include/ )
+add_custom_command(
+      TARGET deploy_${PROJECT_TARGET_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory 
+         ${PROJECT_SOURCE_DIR}/api/carpc/ ${CMAKE_INSTALL_PREFIX}/include/carpc/
+      COMMENT "Copying include artifacts"
+   )
