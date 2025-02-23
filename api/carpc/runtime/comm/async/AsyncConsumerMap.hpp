@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "carpc/runtime/comm/async/IAsync.hpp"
 
 
