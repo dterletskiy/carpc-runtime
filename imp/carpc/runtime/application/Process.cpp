@@ -241,7 +241,6 @@ bool Process::start( const Thread::Configuration::tVector& thread_configs )
    while( true )
    {
       bool threads_started = true;
-      std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
       for( const auto& p_thread : m_thread_list )
       {
          bool thread_started = p_thread->started( );
@@ -254,6 +253,8 @@ bool Process::start( const Thread::Configuration::tVector& thread_configs )
 
       if( true == threads_started )
          break;
+
+      std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
    }
    SYS_DBG( "[runtime] all application threads started" );
 
