@@ -5,16 +5,16 @@
 #include "carpc/runtime/comm/service/experimental/TGenerator.hpp"
 
 #include "carpc/trace/Trace.hpp"
-#define CLASS_ABBR "TServerExp"
+#define CLASS_ABBR "TServer"
 
 
 
 namespace carpc::service::experimental::__private__ {
 
-   template< typename TYPES >
+   template< typename _TGenerator >
       class TProxy;
 
-   template< typename TYPES >
+   template< typename _TGenerator >
       class TServer;
 
 } // namespace carpc::service::experimental::__private__
@@ -30,7 +30,11 @@ namespace carpc::service::experimental::__private_server__ {
       RequestInfo( const comm::sequence::ID _server_seq_id )
          : server_seq_id( _server_seq_id )
       { }
-      RequestInfo( const comm::sequence::ID _server_seq_id, const comm::sequence::ID _client_seq_id, const Address _client_addr )
+      RequestInfo(
+               const comm::sequence::ID _server_seq_id,
+               const comm::sequence::ID _client_seq_id,
+               const Address _client_addr
+            )
          : server_seq_id( _server_seq_id )
          , client_seq_id( _client_seq_id )
          , client_addr( _client_addr )
@@ -49,51 +53,51 @@ namespace carpc::service::experimental::__private_server__ {
       std::set< RequestInfo > info_set;
    };
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    class MethodProcessor
    {
-      using tServer = __private__::TServer< TYPES >;
-      using tProxy = __private__::TProxy< TYPES >;
+      using tServer = __private__::TServer< _TGenerator >;
+      using tProxy = __private__::TProxy< _TGenerator >;
 
       public:
-         using tRequestStatusMap = std::map< typename TYPES::method::tEventID, RequestStatus >;
+         using tRequestStatusMap = std::map< typename _TGenerator::method::tEventID, RequestStatus >;
 
       public:
          MethodProcessor( tServer* );
          ~MethodProcessor( );
 
-         void process( const typename TYPES::method::tEvent& );
+         void process( const typename _TGenerator::method::tEvent& );
          const comm::sequence::ID& unblock_request( );
          void prepare_response( const comm::sequence::ID );
          template< typename tResponseData, typename... Args >
             void response( const Args&... args );
 
       private:
-         bool pre_process( const typename TYPES::method::tEvent& );
+         bool pre_process( const typename _TGenerator::method::tEvent& );
 
       private:
          tServer*                                           mp_server = nullptr;
          tRequestStatusMap                                  m_request_status_map;
          comm::sequence::ID                                 m_seq_id = comm::sequence::ID::zero;
-         std::optional< typename TYPES::method::tEventID >  m_processing_event_id = std::nullopt;
+         std::optional< typename _TGenerator::method::tEventID >  m_processing_event_id = std::nullopt;
          std::optional< comm::sequence::ID >                m_prepare_response_seq_id = std::nullopt;
    };
 
-   template< typename TYPES >
-   MethodProcessor< TYPES >::MethodProcessor( tServer* p_server )
+   template< typename _TGenerator >
+   MethodProcessor< _TGenerator >::MethodProcessor( tServer* p_server )
       : mp_server( p_server )
    {
    }
 
-   template< typename TYPES >
-   MethodProcessor< TYPES >::~MethodProcessor( )
+   template< typename _TGenerator >
+   MethodProcessor< _TGenerator >::~MethodProcessor( )
    {
    }
 
-   template< typename TYPES >
-   bool MethodProcessor< TYPES >::pre_process( const typename TYPES::method::tEvent& event )
+   template< typename _TGenerator >
+   bool MethodProcessor< _TGenerator >::pre_process( const typename _TGenerator::method::tEvent& event )
    {
-      const typename TYPES::method::tEventID event_id = event.info( ).id( );
+      const typename _TGenerator::method::tEventID event_id = event.info( ).id( );
       const comm::service::ID from_id = event.info( ).from( );
       const comm::service::ID to_id = event.info( ).to( );
       const comm::sequence::ID seq_id = event.info( ).seq_id( );
@@ -111,7 +115,7 @@ namespace carpc::service::experimental::__private_server__ {
       // Check if received request has connected response.
       // If current request does not have connected response request status should not be set to busy
       // and all data for response is not needed.
-      if( false == TYPES::T::method::has_response( event_id ) )
+      if( false == _TGenerator::T::method::has_response( event_id ) )
          return true;
 
       // Check request status for current request ID
@@ -119,8 +123,8 @@ namespace carpc::service::experimental::__private_server__ {
       {
          SYS_WRN( "request busy: %s", event_id.c_str( ) );
          // Sending event with request busy id
-         TYPES::method::tEvent::create(
-            typename TYPES::method::tEventUserSignature(
+         _TGenerator::method::tEvent::create(
+            typename _TGenerator::method::tEventUserSignature(
                mp_server->signature( ).role( ),
                event_id,
                carpc::service::eType::BUSY,
@@ -134,10 +138,13 @@ namespace carpc::service::experimental::__private_server__ {
 
       // Set request busy for current request ID
       request_status.status = eRequestStatus::BUSY;
-      // Increment common sequence ID and set it's value to current processing sequence ID for current request ID
+      // Increment common sequence ID and set it's value to current processing sequence ID
+      // for current request ID
       request_status.processing_server_seq_id = ++m_seq_id;
       // Store RequestInfo structure to request info set 
-      const auto emplace_result = request_status.info_set.emplace( m_seq_id, seq_id, Address{ from_context, from_id } );
+      const auto emplace_result = request_status.info_set.emplace(
+            m_seq_id, seq_id, Address{ from_context, from_id }
+         );
       if( false == emplace_result.second )
       {
          SYS_WRN( "emplace error: %s", m_seq_id.dbg_name( ).c_str( ) );
@@ -146,8 +153,8 @@ namespace carpc::service::experimental::__private_server__ {
       return true;
    }
 
-   template< typename TYPES >
-   void MethodProcessor< TYPES >::process( const typename TYPES::method::tEvent& event )
+   template< typename _TGenerator >
+   void MethodProcessor< _TGenerator >::process( const typename _TGenerator::method::tEvent& event )
    {
       m_processing_event_id = event.info( ).id( );
       if( true == pre_process( event ) )
@@ -155,8 +162,8 @@ namespace carpc::service::experimental::__private_server__ {
       m_processing_event_id.reset( );
    }
 
-   template< typename TYPES >
-   const comm::sequence::ID& MethodProcessor< TYPES >::unblock_request( )
+   template< typename _TGenerator >
+   const comm::sequence::ID& MethodProcessor< _TGenerator >::unblock_request( )
    {
       if( std::nullopt == m_processing_event_id )
       {
@@ -177,15 +184,15 @@ namespace carpc::service::experimental::__private_server__ {
       return request_status.processing_server_seq_id;
    }
 
-   template< typename TYPES >
-   void MethodProcessor< TYPES >::prepare_response( const comm::sequence::ID seq_id )
+   template< typename _TGenerator >
+   void MethodProcessor< _TGenerator >::prepare_response( const comm::sequence::ID seq_id )
    {
       m_prepare_response_seq_id = seq_id;
    }
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    template< typename tResponseData, typename... Args >
-   void MethodProcessor< TYPES >::response( const Args&... args )
+   void MethodProcessor< _TGenerator >::response( const Args&... args )
    {
       // Find request id in request status map
       auto iterator_status_map = m_request_status_map.find( tResponseData::ID );
@@ -198,18 +205,22 @@ namespace carpc::service::experimental::__private_server__ {
       auto& request_info_set = request_status.info_set;
 
       // Get searching sequence ID depending on 'm_prepare_response_seq_id' and 'processing_server_seq_id'
-      comm::sequence::ID searching_seq_id = m_prepare_response_seq_id.value_or( request_status.processing_server_seq_id );
+      comm::sequence::ID searching_seq_id = m_prepare_response_seq_id.value_or(
+            request_status.processing_server_seq_id
+         );
       // Search for RequestInfo structure in request info set for current searching sequence ID
       auto iterator_request_info_set = request_info_set.find( RequestInfo{ searching_seq_id } );
       if( request_info_set.end( ) == iterator_request_info_set )
       {
-         SYS_WRN( "request info for currnet sequence id has not been found: %s", searching_seq_id.dbg_name( ).c_str( ) );
+         SYS_WRN( "request info for currnet sequence id has not been found: %s",
+               searching_seq_id.dbg_name( ).c_str( )
+            );
          return;
       }
 
       const RequestInfo& request_info = *iterator_request_info_set;
 
-      typename TYPES::method::tEventUserSignature event_signature(
+      typename _TGenerator::method::tEventUserSignature event_signature(
          mp_server->signature( ).role( ),
          tResponseData::ID,
          carpc::service::eType::RESPONSE,
@@ -217,8 +228,8 @@ namespace carpc::service::experimental::__private_server__ {
          request_info.client_addr.id( ),
          request_info.client_seq_id
       );
-      typename TYPES::method::tEventData event_data( std::make_shared< tResponseData >( args... ) );
-      TYPES::method::tEvent::create( event_signature )->
+      typename _TGenerator::method::tEventData event_data( std::make_shared< tResponseData >( args... ) );
+      _TGenerator::method::tEvent::create( event_signature )->
          data( event_data )->send( request_info.client_addr.context( ) );
 
       request_info_set.erase( iterator_request_info_set );
@@ -233,10 +244,10 @@ namespace carpc::service::experimental::__private_server__ {
 
 namespace carpc::service::experimental::__private_server__ {
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    struct NotificationStatus
    {
-      using tServer = __private__::TServer< TYPES >;
+      using tServer = __private__::TServer< _TGenerator >;
 
       public:
          bool is_subscribed( ) const;
@@ -246,28 +257,32 @@ namespace carpc::service::experimental::__private_server__ {
             void notify_subscribers( const tServer&, const Args& ... args );
 
       public:
-         std::shared_ptr< typename TYPES::attribute::tBaseData > data( ) const;
+         std::shared_ptr< typename _TGenerator::attribute::tBaseData > data( ) const;
       private:
          std::set< Address > subscribers;
-         std::shared_ptr< typename TYPES::attribute::tBaseData > mp_data = nullptr;
+         std::shared_ptr< typename _TGenerator::attribute::tBaseData > mp_data = nullptr;
    };
 
-   template< typename TYPES >
-   std::shared_ptr< typename TYPES::attribute::tBaseData > NotificationStatus< TYPES >::data( ) const
+   template< typename _TGenerator >
+   std::shared_ptr< typename _TGenerator::attribute::tBaseData >
+      NotificationStatus< _TGenerator >::data( ) const
    {
       return mp_data;
    }
 
-   template< typename TYPES >
-   bool NotificationStatus< TYPES >::is_subscribed( ) const
+   template< typename _TGenerator >
+   bool NotificationStatus< _TGenerator >::is_subscribed( ) const
    {
       return !( subscribers.empty( ) );
    }
 
-   template< typename TYPES >
-   bool NotificationStatus< TYPES >::add_subscriber( const application::Context& context, const comm::service::ID& service_id )
+   template< typename _TGenerator >
+   bool NotificationStatus< _TGenerator >::add_subscriber(
+         const application::Context& context, const comm::service::ID& service_id
+      )
    {
-      // In case of current process PID can have two different exact values but what can mean the same logic values.
+      // In case of current process PID can have two different exact values but what could mean
+      // the same logic values.
       // It is current process ID and appliocation::process::local
       // Here we should standartize what exact value should be stored in collection.
       return subscribers.emplace(
@@ -281,10 +296,13 @@ namespace carpc::service::experimental::__private_server__ {
                ).second;
    }
 
-   template< typename TYPES >
-   bool NotificationStatus< TYPES >::remove_subscriber( const application::Context& context, const comm::service::ID& service_id )
+   template< typename _TGenerator >
+   bool NotificationStatus< _TGenerator >::remove_subscriber(
+         const application::Context& context, const comm::service::ID& service_id
+      )
    {
-      // In case of current process PID can have two different exact values but what can mean the same logic values.
+      // In case of current process PID can have two different exact values but what could mean
+      // the same logic values.
       // It is current process ID and appliocation::process::local
       // Here we should standartize what exact value should be stored in collection.
       return 0 != subscribers.erase(
@@ -298,9 +316,9 @@ namespace carpc::service::experimental::__private_server__ {
                   );
    }
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    template< typename tAttributeData, typename... Args >
-   void NotificationStatus< TYPES >::notify_subscribers( const tServer& server, const Args& ... args )
+   void NotificationStatus< _TGenerator >::notify_subscribers( const tServer& server, const Args& ... args )
    {
       mp_data = std::make_shared< tAttributeData >( args... );
 
@@ -313,36 +331,36 @@ namespace carpc::service::experimental::__private_server__ {
 
       for( const auto& subscriber : subscribers )
       {
-         typename TYPES::attribute::tEventUserSignature event_signature(
+         typename _TGenerator::attribute::tEventUserSignature event_signature(
             server.signature( ).role( ),
             tAttributeData::ID,
             carpc::service::eType::NOTIFICATION,
             server.id( ),
             subscriber.id( )
          );
-         typename TYPES::attribute::tEventData event_data( mp_data );
-         TYPES::attribute::tEvent::create( event_signature )->
+         typename _TGenerator::attribute::tEventData event_data( mp_data );
+         _TGenerator::attribute::tEvent::create( event_signature )->
             data( event_data )->send( subscriber.context( ) );
       }
    }
 
 
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    class AttributeProcessor
    {
-      using tServer = __private__::TServer< TYPES >;
-      using tProxy = __private__::TProxy< TYPES >;
+      using tServer = __private__::TServer< _TGenerator >;
+      using tProxy = __private__::TProxy< _TGenerator >;
 
-      using tNotificationStatus = NotificationStatus< TYPES >;
-      using tAttributeStatusMap = std::map< typename TYPES::attribute::tEventID, tNotificationStatus >;
+      using tNotificationStatus = NotificationStatus< _TGenerator >;
+      using tAttributeStatusMap = std::map< typename _TGenerator::attribute::tEventID, tNotificationStatus >;
 
       public:
          AttributeProcessor( tServer* );
          ~AttributeProcessor( );
 
       public:
-         bool process( const typename TYPES::attribute::tEvent& );
+         bool process( const typename _TGenerator::attribute::tEvent& );
          template< typename tAttributeData, typename... Args >
             void notify( const Args&... args );
          template< typename tAttributeData >
@@ -353,21 +371,21 @@ namespace carpc::service::experimental::__private_server__ {
          tAttributeStatusMap     m_attribute_status_map;
    };
 
-   template< typename TYPES >
-   AttributeProcessor< TYPES >::AttributeProcessor( tServer* p_server )
+   template< typename _TGenerator >
+   AttributeProcessor< _TGenerator >::AttributeProcessor( tServer* p_server )
       : mp_server( p_server )
    {
    }
 
-   template< typename TYPES >
-   AttributeProcessor< TYPES >::~AttributeProcessor( )
+   template< typename _TGenerator >
+   AttributeProcessor< _TGenerator >::~AttributeProcessor( )
    {
    }
 
-   template< typename TYPES >
-   bool AttributeProcessor< TYPES >::process( const typename TYPES::attribute::tEvent& event )
+   template< typename _TGenerator >
+   bool AttributeProcessor< _TGenerator >::process( const typename _TGenerator::attribute::tEvent& event )
    {
-      const typename TYPES::attribute::tEventID event_id = event.info( ).id( );
+      const typename _TGenerator::attribute::tEventID event_id = event.info( ).id( );
       const carpc::service::eType event_type = event.info( ).type( );
       const comm::service::ID from_id = event.info( ).from( );
       const auto from_context = event.context( );
@@ -392,15 +410,15 @@ namespace carpc::service::experimental::__private_server__ {
          }
          if( notification_status.data( ) )
          {
-            typename TYPES::attribute::tEventUserSignature event_signature(
+            typename _TGenerator::attribute::tEventUserSignature event_signature(
                mp_server->signature( ).role( ),
                event_id,
                carpc::service::eType::NOTIFICATION,
                mp_server->id( ),
                from_id
             );
-            typename TYPES::attribute::tEventData event_data( notification_status.data( ) );
-            TYPES::attribute::tEvent::create( event_signature )->
+            typename _TGenerator::attribute::tEventData event_data( notification_status.data( ) );
+            _TGenerator::attribute::tEvent::create( event_signature )->
                data( event_data )->send( from_context );
          }
       }
@@ -435,9 +453,9 @@ namespace carpc::service::experimental::__private_server__ {
       return true;
    }
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    template< typename tAttributeData, typename... Args >
-   void AttributeProcessor< TYPES >::notify( const Args&... args )
+   void AttributeProcessor< _TGenerator >::notify( const Args&... args )
    {
       auto attribute_status_map_iterator = m_attribute_status_map.find( tAttributeData::ID );
       if( m_attribute_status_map.end( ) == attribute_status_map_iterator )
@@ -450,9 +468,9 @@ namespace carpc::service::experimental::__private_server__ {
       notification_status.template notify_subscribers< tAttributeData >( *mp_server, args... );
    }
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    template< typename tAttributeData >
-   const tAttributeData* AttributeProcessor< TYPES >::attribute( ) const
+   const tAttributeData* AttributeProcessor< _TGenerator >::attribute( ) const
    {
       auto attribute_status_map_iterator = m_attribute_status_map.find( tAttributeData::ID );
       if( m_attribute_status_map.end( ) == attribute_status_map_iterator )
@@ -471,17 +489,17 @@ namespace carpc::service::experimental::__private_server__ {
 
 namespace carpc::service::experimental::__private__ {
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    class TServer
       : public IServer
-      , public TYPES::method::tEventConsumer
-      , public TYPES::attribute::tEventConsumer
+      , public _TGenerator::method::tEventConsumer
+      , public _TGenerator::attribute::tEventConsumer
    {
-      using tServer = TServer< TYPES >;
-      using tMethodProcessor = __private_server__::MethodProcessor< TYPES >;
-      using tAttributeProcessor = __private_server__::AttributeProcessor< TYPES >;
+      using tServer = TServer< _TGenerator >;
+      using tMethodProcessor = __private_server__::MethodProcessor< _TGenerator >;
+      using tAttributeProcessor = __private_server__::AttributeProcessor< _TGenerator >;
 
-      friend class __private_server__::MethodProcessor< TYPES >;
+      friend class __private_server__::MethodProcessor< _TGenerator >;
 
       public:
          TServer( const carpc::async::tAsyncTypeID&, const std::string&, const bool );
@@ -501,15 +519,15 @@ namespace carpc::service::experimental::__private__ {
          template< typename tAttributeData >
             const tAttributeData* attribute( ) const;
          template< typename tRequestData >
-            const tRequestData* get_event_data( const typename TYPES::method::tEvent& event );
+            const tRequestData* get_event_data( const typename _TGenerator::method::tEvent& event );
          const comm::sequence::ID& unblock_request( );
          void prepare_response( const comm::sequence::ID );
 
       private:
-         void process_event( const typename TYPES::method::tEvent& ) override final;
-         void process_event( const typename TYPES::attribute::tEvent& ) override final;
+         void process_event( const typename _TGenerator::method::tEvent& ) override final;
+         void process_event( const typename _TGenerator::attribute::tEvent& ) override final;
       private:
-         virtual void process_request_event( const typename TYPES::method::tEvent& ) = 0;
+         virtual void process_request_event( const typename _TGenerator::method::tEvent& ) = 0;
 
       private:
          tMethodProcessor     m_method_processor;
@@ -518,19 +536,23 @@ namespace carpc::service::experimental::__private__ {
 
 
 
-   template< typename TYPES >
-   TServer< TYPES >::TServer( const carpc::async::tAsyncTypeID& interface_type_id, const std::string& role_name, const bool is_export )
+   template< typename _TGenerator >
+   TServer< _TGenerator >::TServer(
+            const carpc::async::tAsyncTypeID& interface_type_id,
+            const std::string& role_name,
+            const bool is_export
+         )
       : IServer( interface_type_id, role_name, is_export )
-      , TYPES::method::tEventConsumer( )
-      , TYPES::attribute::tEventConsumer( )
+      , _TGenerator::method::tEventConsumer( )
+      , _TGenerator::attribute::tEventConsumer( )
       , m_method_processor( this )
       , m_attribute_processor( this )
    {
-      for( auto method_event_id : typename TYPES::method::tEventID( ) )
+      for( auto method_event_id : typename _TGenerator::method::tEventID( ) )
       {
-         TYPES::method::tEvent::set_notification(
+         _TGenerator::method::tEvent::set_notification(
             this,
-            typename TYPES::method::tEventUserSignature(
+            typename _TGenerator::method::tEventUserSignature(
                signature( ).role( ),
                method_event_id,
                carpc::service::eType::REQUEST,
@@ -539,11 +561,11 @@ namespace carpc::service::experimental::__private__ {
             )
          );
       }
-      for( auto attribute_event_id : typename TYPES::attribute::tEventID( ) )
+      for( auto attribute_event_id : typename _TGenerator::attribute::tEventID( ) )
       {
-         TYPES::attribute::tEvent::set_notification(
+         _TGenerator::attribute::tEvent::set_notification(
             this,
-            typename TYPES::attribute::tEventUserSignature(
+            typename _TGenerator::attribute::tEventUserSignature(
                signature( ).role( ),
                attribute_event_id,
                carpc::service::eType::SUBSCRIBE,
@@ -552,9 +574,9 @@ namespace carpc::service::experimental::__private__ {
             )
          );
 
-         TYPES::attribute::tEvent::set_notification(
+         _TGenerator::attribute::tEvent::set_notification(
             this,
-            typename TYPES::attribute::tEventUserSignature(
+            typename _TGenerator::attribute::tEventUserSignature(
                signature( ).role( ),
                attribute_event_id,
                carpc::service::eType::UNSUBSCRIBE,
@@ -565,75 +587,77 @@ namespace carpc::service::experimental::__private__ {
       }
    }
 
-   template< typename TYPES >
-   TServer< TYPES >::~TServer( )
+   template< typename _TGenerator >
+   TServer< _TGenerator >::~TServer( )
    {
-      TYPES::method::tEvent::clear_all_notifications( this );
-      TYPES::attribute::tEvent::clear_all_notifications( this );
+      _TGenerator::method::tEvent::clear_all_notifications( this );
+      _TGenerator::attribute::tEvent::clear_all_notifications( this );
    }
 
-   template< typename TYPES >
-   void TServer< TYPES >::connected( const Address& proxy_address )
+   template< typename _TGenerator >
+   void TServer< _TGenerator >::connected( const Address& proxy_address )
    {
       connected( );
    }
 
-   template< typename TYPES >
-   void TServer< TYPES >::disconnected( const Address& proxy_address )
+   template< typename _TGenerator >
+   void TServer< _TGenerator >::disconnected( const Address& proxy_address )
    {
       disconnected( );
    }
 
-   template< typename TYPES >
-   void TServer< TYPES >::process_event( const typename TYPES::method::tEvent& event )
+   template< typename _TGenerator >
+   void TServer< _TGenerator >::process_event( const typename _TGenerator::method::tEvent& event )
    {
       SYS_VRB( "processing event: %s", event.info( ).dbg_name( ).c_str( ) );
       m_method_processor.process( event );
    }
 
-   template< typename TYPES >
-   void TServer< TYPES >::process_event( const typename TYPES::attribute::tEvent& event )
+   template< typename _TGenerator >
+   void TServer< _TGenerator >::process_event( const typename _TGenerator::attribute::tEvent& event )
    {
       SYS_VRB( "processing event: %s", event.info( ).dbg_name( ).c_str( ) );
       m_attribute_processor.process( event );
    }
 
-   template< typename TYPES >
-   const comm::sequence::ID& TServer< TYPES >::unblock_request( )
+   template< typename _TGenerator >
+   const comm::sequence::ID& TServer< _TGenerator >::unblock_request( )
    {
       return m_method_processor.unblock_request( );
    }
 
-   template< typename TYPES >
-   void TServer< TYPES >::prepare_response( const comm::sequence::ID seq_id )
+   template< typename _TGenerator >
+   void TServer< _TGenerator >::prepare_response( const comm::sequence::ID seq_id )
    {
       return m_method_processor.prepare_response( seq_id );
    }
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    template< typename tResponseData, typename... Args >
-   void TServer< TYPES >::response( const Args&... args )
+   void TServer< _TGenerator >::response( const Args&... args )
    {
       m_method_processor.template response< tResponseData >( args... );
    }
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    template< typename tAttributeData, typename... Args >
-   void TServer< TYPES >::notify( const Args&... args )
+   void TServer< _TGenerator >::notify( const Args&... args )
    {
       m_attribute_processor.template notify< tAttributeData >( args... );
    }
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    template< typename tAttributeData >
-   const tAttributeData* TServer< TYPES >::attribute( ) const
+   const tAttributeData* TServer< _TGenerator >::attribute( ) const
    {
       return m_attribute_processor.template attribute< tAttributeData >( );
    }
 
-   template< typename TYPES >
+   template< typename _TGenerator >
    template< typename tRequestData >
-   const tRequestData* TServer< TYPES >::get_event_data( const typename TYPES::method::tEvent& event )
+   const tRequestData* TServer< _TGenerator >::get_event_data(
+         const typename _TGenerator::method::tEvent& event
+      )
    {
       if( const tRequestData* p_data = static_cast< tRequestData* >( event.data( )->ptr.get( ) ) )
          return p_data;
@@ -648,19 +672,21 @@ namespace carpc::service::experimental::__private__ {
 
 namespace carpc::service::experimental {
 
-   template< typename TYPES >
-   class TServer : public __private__::TServer< TGenerator< TYPES > >
+   template< typename _ServiceTypes >
+   class TServer : public __private__::TServer< TGenerator< _ServiceTypes > >
    {
       public:
          TServer( const std::string&, const bool );
 
-         using tMethod = typename TGenerator< TYPES >::Method;
-         using tAttribute = typename TGenerator< TYPES >::Attribute;
+         using tMethod = typename TGenerator< _ServiceTypes >::Method;
+         using tAttribute = typename TGenerator< _ServiceTypes >::Attribute;
    };
 
-   template< typename TYPES >
-   TServer< TYPES >::TServer( const std::string& role_name, const bool is_export )
-      : __private__::TServer< TGenerator< TYPES > >( TGenerator< TYPES >::interface_type_id, role_name, is_export )
+   template< typename _ServiceTypes >
+   TServer< _ServiceTypes >::TServer( const std::string& role_name, const bool is_export )
+      : __private__::TServer< TGenerator< _ServiceTypes > >(
+            TGenerator< _ServiceTypes >::interface_type_id, role_name, is_export
+         )
    {
       REGISTER_EVENT( tMethod );
       REGISTER_EVENT( tAttribute );
