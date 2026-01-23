@@ -42,11 +42,25 @@ link_directories( ${TOOLS_BINARY_DIR} )
 #                                      Code generation                                    #
 #                                                                                         #
 ###########################################################################################
-find_files_by_ext( RECURSE FILES PLANTUML_FILES
+find_files_by_ext( RECURSE
+      FILES PLANTUML_FILES
       LOCATION ${PROJECT_SOURCE_DIR}
       EXTENTIONS ${EXTENTIONS_PLANTUML}
    )
 generate_plantumls( PLANTUML_FILES ${PLANTUML_FILES} GENERATED_FILES PROJECT_GEN_PLANTUML_FILES )
+
+
+
+###############################################################################
+#                                                                             #
+#                             Build API file list                             #
+#                                                                             #
+###############################################################################
+find_files_by_ext( RECURSE
+      FILES PROJECT_API_FILES
+      LOCATION ${PROJECT_SOURCE_DIR}
+      EXTENTIONS ${EXTENTIONS_CPP_HDR}
+   )
 
 
 
@@ -55,10 +69,11 @@ generate_plantumls( PLANTUML_FILES ${PLANTUML_FILES} GENERATED_FILES PROJECT_GEN
 #                                   Build source file list                                #
 #                                                                                         #
 ###########################################################################################
-find_files_by_ext( RECURSE FILES PROJECT_SOURCE_FILES
-      LOCATION ${PROJECT_SOURCE_DIR}
-      EXTENTIONS ${EXTENTIONS_CPP_SRC}
-   )
+# find_files_by_ext( RECURSE
+#       FILES PROJECT_SOURCE_FILES
+#       LOCATION ${PROJECT_SOURCE_DIR}
+#       EXTENTIONS ${EXTENTIONS_CPP_SRC}
+#    )
 
 
 
@@ -80,8 +95,8 @@ set_target_properties(
    )
 target_link_libraries(
       ${PROJECT_TARGET_NAME}-shared
+      PUBLIC ${BASE_TARGET_NAME}-shared
       PUBLIC ${OSW_TARGET_NAME}-shared
-      PUBLIC ${TOOLS_TARGET_NAME}-shared
    )
 
 add_library(
@@ -94,8 +109,8 @@ set_target_properties(
    )
 target_link_libraries(
       ${PROJECT_TARGET_NAME}-static
+      PUBLIC ${BASE_TARGET_NAME}-static
       PUBLIC ${OSW_TARGET_NAME}-static
-      PUBLIC ${TOOLS_TARGET_NAME}-static
    )
 
 
@@ -123,3 +138,8 @@ fenix_add_deploy_targets( NAME ${PROJECT_TARGET_NAME}
       INCLUDES
          ${PROJECT_SOURCE_DIR}/api/carpc/
    )
+
+
+
+fenix_add_subdirectory( imp )
+fenix_add_subdirectory( tests )
