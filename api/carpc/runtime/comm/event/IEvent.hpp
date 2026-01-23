@@ -1,7 +1,6 @@
 #pragma once
 
-#include <memory>
-
+#include "carpc/base/memory/RefCounted.hpp"
 #include "carpc/runtime/comm/event/Types.hpp"
 
 
@@ -11,7 +10,7 @@ namespace carpc::runtime::comm::event {
    class IConsumer;
 
    class IEvent
-      : public std::enable_shared_from_this< IEvent >
+      : public carpc::memory::RefCounted
    {
       public:
          IEvent( ) = default;
@@ -24,6 +23,9 @@ namespace carpc::runtime::comm::event {
          const tContext& context( ) const;
          const tPriority& priority( ) const;
          void priority( const tPriority& value );
+
+      protected:
+         void on_zero_ref( ) noexcept override;
 
       protected:
          const tContext m_context = tContext::current( );
@@ -47,5 +49,12 @@ namespace carpc::runtime::comm::event {
    {
       m_priority = value;
    }
+
+   inline
+   void IEvent::on_zero_ref( ) noexcept
+   {
+      delete this;
+   }
+
 
 } // namespace carpc::runtime::comm::event

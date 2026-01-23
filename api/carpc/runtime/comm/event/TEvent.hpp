@@ -1,6 +1,10 @@
 #pragma once
 
+#include "carpc/base/memory/EnableIntrusiveFromThis.hpp" 
+#include "carpc/base/memory/MakeIntrusive.hpp"
 #include "carpc/runtime/comm/event/IEvent.hpp"
+#include "carpc/runtime/comm/event/ISignature.hpp"
+#include "carpc/runtime/comm/event/IData.hpp"
 
 #include "carpc/trace/trace.h"
 
@@ -9,17 +13,19 @@
 namespace carpc::runtime::comm::event {
 
    template< typename _Generator >
-   class TEvent : public IEvent
+   class TEvent
+      : public IEvent
+      , public carpc::memory::EnableIntrusiveFromThis< TEvent< _Generator > >
    {
       public:
          using tEvent         = typename _Generator::Config::tEvent;
-         using tEventPtr      = typename std::shared_ptr< tEvent >;
+         using tEventPtr      = typename carpc::memory::IntrusivePtr< tEvent >;
          using tConsumer      = typename _Generator::Config::tConsumer;
          using tService       = typename _Generator::Config::tService;
          using tData          = typename _Generator::Config::tData;
-         using tDataPtr       = typename std::shared_ptr< tData >;
+         using tDataPtr       = typename carpc::memory::IntrusivePtr< tData >;
          using tSignature     = typename _Generator::Config::tSignature;
-         using tSignaturePtr  = typename std::shared_ptr< tSignature >;
+         using tSignaturePtr  = typename carpc::memory::IntrusivePtr< tSignature >;
 
       public:
          TEvent( ) = default;
@@ -29,9 +35,8 @@ namespace carpc::runtime::comm::event {
             requires std::constructible_from< tSignature, Args... >
          static tEventPtr create( Args&&... args )
          {
-            return std::make_shared< tEvent >( )->signature.set(
-                  std::forward< Args >( args )...
-               );
+            return carpc::memory::make_intrusive< tEvent >( )
+               ->signature.set( std::forward< Args >( args )... );
          }
 
          static bool set_all_notifications( tConsumer* p_consumer )
@@ -94,13 +99,11 @@ namespace carpc::runtime::comm::event {
 
             template< typename... Args >
                requires std::constructible_from< PROPERTY, Args... >
-            std::shared_ptr< OWNER > set( Args&&... args )
+            carpc::memory::IntrusivePtr< OWNER > set( Args&&... args )
             {
-               owner.*Member = std::make_shared< PROPERTY >(
+               owner.*Member = carpc::memory::make_intrusive< PROPERTY >(
                   std::forward< Args >( args )... );
-               return std::shared_ptr< OWNER >(
-                  owner.shared_from_this( ), &owner );
-
+               return owner.intrusive_from_this( );
             }
          };
 

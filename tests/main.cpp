@@ -7,7 +7,7 @@
 
 namespace test::event {
 
-   struct EventData
+   struct EventData : public carpc::runtime::comm::event::IData
    {
       EventData( )
       {
@@ -27,7 +27,7 @@ namespace test::event {
       }
    };
 
-   struct EventSignature
+   struct EventSignature : public carpc::runtime::comm::event::ISignature
    {
       EventSignature( )
       {
@@ -44,6 +44,14 @@ namespace test::event {
       ~EventSignature( )
       {
          CARPC_TRACE_LOG_TRACE( );
+      }
+
+
+      bool operator<(
+            const carpc::runtime::comm::event::ISignature& other
+         ) const override
+      {
+         return true;
       }
    };
 
